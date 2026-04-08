@@ -168,13 +168,22 @@ class OCCAppraisalEngine:
             w_intent = bool(witness_event.get("intentional", False))
             ws = wsev * 0.55  # witness scale factor
 
-            if w_self and wet in ("bad_news", "failure", "threat", "fears_confirmed"):
+            # Don't fire witness Pity if this agent is already the primary sufferer
+            # of the same class of event — the fired agent doesn't pity the person
+            # offering support.
+            agent_is_sufferer = (
+                et in ("bad_news", "failure", "threat") and
+                self_directed and
+                entity.emotions.get("Distress") and
+                entity.emotions["Distress"].intensity > 0.6
+            )
+
+            if w_self and wet in ("bad_news", "failure", "threat", "fears_confirmed") and not agent_is_sufferer:
                 # Witnessing someone suffer bad news / failure / threat
                 deltas["Pity"] = deltas.get("Pity", 0) + ws * 0.9
                 deltas["Distress"] = deltas.get("Distress", 0) + ws * 0.5
-                if wet == "failure":
-                    # Guilt if this agent may have contributed
-                    deltas["Guilt"] = deltas.get("Guilt", 0) + ws * 0.35
+                # Guilt: supporter's instinct of "I should be doing more"
+                deltas["Guilt"] = deltas.get("Guilt", 0) + ws * 0.20
 
             elif w_self and wet == "insult" and w_intent:
                 # Witnessing someone get insulted — protective reproach
