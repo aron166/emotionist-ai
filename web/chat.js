@@ -61,26 +61,37 @@ function setBusy(on) {
     const chat = $("chat");
     const node = document.createElement("div");
     node.className = "msg alex";
+    node.id = "thinking-node";
     node.innerHTML = `<div class="bubble"><span class="thinking"><span></span><span></span><span></span></span></div><div class="meta">Agent · thinking</div>`;
     chat.appendChild(node);
     chat.scrollTop = chat.scrollHeight;
+  } else {
+    const t = document.getElementById("thinking-node");
+    if (t) t.remove();
   }
 }
 
 // ── Actions ─────────────────────────────────────────────────────────────────
 async function applyConfig() {
   if (busy) return;
+  const seed = $("cfg-seed").value;
   setBusy(true);
-  const state = await api("/api/chat/reset", {
-    name: $("cfg-name").value || "Morgan",
-    personality: $("cfg-personality").value,
-    reactivity: parseFloat($("cfg-rx").value),
-    persona: $("cfg-persona").value,
-    seed_emotion: $("cfg-seed").value,
-    seed_intensity: parseFloat($("cfg-seed-int").value),
-  });
-  render(state);
-  setBusy(false);
+  try {
+    const state = await api("/api/chat/reset", {
+      name: $("cfg-name").value || "Morgan",
+      personality: $("cfg-personality").value,
+      reactivity: parseFloat($("cfg-rx").value),
+      persona: $("cfg-persona").value,
+      seed_emotion: seed && seed !== "None" ? seed : null,
+      seed_intensity: parseFloat($("cfg-seed-int").value),
+    });
+    if (state.error) { alert(state.error); return; }
+    render(state);
+  } catch (e) {
+    alert("Request failed: " + e);
+  } finally {
+    setBusy(false);
+  }
 }
 
 async function sendMessage() {
@@ -88,10 +99,15 @@ async function sendMessage() {
   if (!v || busy) return;
   $("msg").value = "";
   setBusy(true);
-  const state = await api("/api/chat/send", { message: v });
-  render(state);
-  setBusy(false);
-  if (state.error) alert(state.error);
+  try {
+    const state = await api("/api/chat/send", { message: v });
+    if (state.error) { alert(state.error); return; }
+    render(state);
+  } catch (e) {
+    alert("Request failed: " + e);
+  } finally {
+    setBusy(false);
+  }
 }
 
 // ── Wire up ───────────────────────────────────────────────────────────────────

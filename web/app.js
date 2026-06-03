@@ -56,9 +56,13 @@ function setBusy(on, thinkingFor) {
     const chat = $("chat");
     const node = document.createElement("div");
     node.className = "msg " + cls;
+    node.id = "thinking-node";
     node.innerHTML = `<div class="bubble"><span class="thinking"><span></span><span></span><span></span></span></div><div class="meta">${escapeHtml(thinkingFor)} · thinking</div>`;
     chat.appendChild(node);
     chat.scrollTop = chat.scrollHeight;
+  } else if (!on) {
+    const t = document.getElementById("thinking-node");
+    if (t) t.remove();
   }
 }
 
@@ -73,19 +77,29 @@ async function doReset() {
 }
 
 async function doTurn(message) {
-  if (busy) return;
+  if (busy) return false;
   const cur = window.__state;
   setBusy(true, cur ? cur.next_speaker : null);
-  const state = await api("/api/turn", { message: message || null });
-  window.__state = state;
-  render(state);
-  setBusy(false);
-  if (state.error) alert(state.error);
+  try {
+    const state = await api("/api/turn", { message: message || null });
+    if (state.error) { alert(state.error); return false; }
+    window.__state = state;
+    render(state);
+    return true;
+  } catch (e) {
+    alert("Request failed: " + e);
+    return false;
+  } finally {
+    setBusy(false);
+  }
 }
 
 async function doRun(n) {
   if (busy) return;
-  for (let i = 0; i < n; i++) await doTurn();
+  for (let i = 0; i < n; i++) {
+    const ok = await doTurn();
+    if (!ok) break;  // stop the batch if a turn fails
+  }
 }
 
 // ── Wire up ───────────────────────────────────────────────────────────────────

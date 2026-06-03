@@ -5,6 +5,7 @@ Run: streamlit run app.py
 
 import os
 import time
+import html
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -386,7 +387,7 @@ def render_messages(highlight_turn: int = 0):
         hl_style = "outline:2px solid var(--violet);outline-offset:2px;" if is_hl else ""
         html += f"""
         <div class="message-wrap {cls}">
-            <div class="message-bubble {bubble_cls}" style="{hl_style}">{msg["text"]}</div>
+            <div class="message-bubble {bubble_cls}" style="{hl_style}">{html.escape(msg["text"])}</div>
             <div class="message-meta">{speaker} · turn {msg["turn"]}</div>
             {event_html}
         </div>"""
@@ -440,6 +441,7 @@ with st.container():
         topic = st.selectbox(
             "Conversation starter",
             list(STARTER_TOPICS.keys()),
+            index=list(STARTER_TOPICS).index("Cancelled project"),
             label_visibility="collapsed",
             key="topic_select"
         )
@@ -478,10 +480,13 @@ with st.expander("Inject a custom message into the conversation"):
         custom_msg = st.text_input("Message", placeholder="Type something to say to the next agent…", label_visibility="collapsed")
     with custom_col2:
         if st.button("Send", use_container_width=True) and custom_msg.strip():
-            st.session_state.next_message = custom_msg.strip()
-            with st.spinner(""):
-                do_turn()
-            st.rerun()
+            if not os.environ.get("GROQ_API_KEY"):
+                st.error("GROQ_API_KEY not set in .env")
+            else:
+                st.session_state.next_message = custom_msg.strip()
+                with st.spinner(""):
+                    do_turn()
+                st.rerun()
 
 # Reactivity tuning
 _rx_ref = f"resilient {REACTIVITY['resilient']}  ·  average {REACTIVITY['average']}  ·  neurotic {REACTIVITY['neurotic']}"

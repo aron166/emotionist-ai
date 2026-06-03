@@ -33,7 +33,7 @@ Message: "You completely dropped the ball on this project."
 {"event_type": "insult", "severity": 0.75, "directed_at_self": true, "intentional": true}
 
 Message: "I just got fired today, I don't know what to do."
-{"event_type": "bad_news", "severity": 0.85, "directed_at_self": true, "intentional": false}
+{"event_type": "bad_news", "severity": 0.85, "directed_at_self": false, "intentional": false}
 
 Message: "Yeah, walking might help clear my head a bit."
 {"event_type": "neutral", "severity": 0.10, "directed_at_self": false, "intentional": false}
