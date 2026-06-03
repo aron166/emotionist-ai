@@ -180,6 +180,89 @@ def turn(req: TurnReq):
     return full_state()
 
 
+# ── Human ↔ agent chat (single-agent mode) ────────────────────────────────────
+SEED_EMOTIONS = ["Joy", "Anger", "Fear", "Shame", "Pride", "Distress",
+                 "Gratitude", "Sadness", "Anticipation", "Trust"]
+PERSONALITIES = ["neurotic", "average", "resilient"]
+
+
+class ChatSession:
+    """One configurable agent the human talks to directly (no witness track)."""
+
+    def __init__(self):
+        self.reset("Morgan", "average", REACTIVITY["average"],
+                   "You are Morgan, a thoughtful person having a conversation.")
+
+    def reset(self, name, personality, reactivity, persona,
+              seed_emotion=None, seed_intensity=0.0):
+        if personality not in PERSONALITIES:
+            personality = "average"
+        self.agent = Agent(name or "Morgan", personality, persona or "", reactivity=reactivity)
+        self.messages: list[dict] = []
+        if (seed_emotion and seed_emotion != "None"
+                and seed_emotion in self.agent.entity.emotions and seed_intensity > 0):
+            self.agent.entity.emotions[seed_emotion].activate(seed_intensity)
+
+    def send(self, message: str) -> str:
+        reply = self.agent.receive_and_respond(message)  # human chat: no witness_event
+        self.messages.append({"role": "user", "text": message})
+        self.messages.append({"role": "agent", "text": reply, "event": self.agent.last_event})
+        return reply
+
+
+CHAT = ChatSession()
+
+
+def chat_state() -> dict:
+    a = CHAT.agent
+    s = agent_state(a)
+    s["persona"] = a.base_persona
+    s["reactivity"] = round(a.entity.reactivity, 2)
+    s["system_prompt"] = a.prompt_modifier.build_system_prompt(a.entity, a.base_persona)
+    return {
+        "agent": s,
+        "messages": CHAT.messages,
+        "seed_options": SEED_EMOTIONS,
+        "personalities": PERSONALITIES,
+        "reactivity_ref": REACTIVITY,
+        "has_key": bool(os.environ.get("GROQ_API_KEY")),
+    }
+
+
+class ChatResetReq(BaseModel):
+    name: str = "Morgan"
+    personality: str = "average"
+    reactivity: float = 1.0
+    persona: str = "You are Morgan, a thoughtful person having a conversation."
+    seed_emotion: str | None = None
+    seed_intensity: float = 0.0
+
+
+class ChatSendReq(BaseModel):
+    message: str
+
+
+@app.get("/api/chat/state")
+def chat_get_state():
+    return chat_state()
+
+
+@app.post("/api/chat/reset")
+def chat_reset(req: ChatResetReq):
+    CHAT.reset(req.name, req.personality, req.reactivity, req.persona,
+               req.seed_emotion, req.seed_intensity)
+    return chat_state()
+
+
+@app.post("/api/chat/send")
+def chat_send(req: ChatSendReq):
+    if not os.environ.get("GROQ_API_KEY"):
+        return {"error": "GROQ_API_KEY not set in .env"}
+    if req.message.strip():
+        CHAT.send(req.message.strip())
+    return chat_state()
+
+
 # ── Static frontend ───────────────────────────────────────────────────────────
 WEB_DIR = os.path.join(os.path.dirname(__file__), "web")
 
@@ -187,6 +270,11 @@ WEB_DIR = os.path.join(os.path.dirname(__file__), "web")
 @app.get("/")
 def index():
     return FileResponse(os.path.join(WEB_DIR, "index.html"))
+
+
+@app.get("/chat")
+def chat_page():
+    return FileResponse(os.path.join(WEB_DIR, "chat.html"))
 
 
 app.mount("/", StaticFiles(directory=WEB_DIR), name="web")
