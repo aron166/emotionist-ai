@@ -24,7 +24,6 @@ BEHAVIORAL_PROFILES: dict[str, dict[str, float]] = {
     "Gratification":{"aggression": 15, "openness": 75, "creativity": 78, "confidence": 85, "cooperation": 72},
     "Remorse":     {"aggression": 10, "openness": 50, "creativity": 42, "confidence": 15, "cooperation": 55},
     "Satisfaction":{"aggression": 10, "openness": 72, "creativity": 68, "confidence": 75, "cooperation": 78},
-    "Relief":      {"aggression":  8, "openness": 70, "creativity": 65, "confidence": 65, "cooperation": 75},
     "HappyFor":    {"aggression":  8, "openness": 82, "creativity": 70, "confidence": 62, "cooperation": 88},
     "Disappointment":{"aggression": 25, "openness": 38, "creativity": 48, "confidence": 28, "cooperation": 42},
     "Pity":        {"aggression": 10, "openness": 55, "creativity": 50, "confidence": 40, "cooperation": 70},
@@ -190,7 +189,7 @@ EMOTION_EXPERIENCES: dict[str, str] = {
 }
 
 
-def _weighted_params(dominant: list[tuple[str, float]]) -> dict[str, float]:
+def weighted_params(dominant: list[tuple[str, float]]) -> dict[str, float]:
     total_weight = sum(intensity for _, intensity in dominant)
     if total_weight == 0:
         return NEUTRAL_PROFILE.copy()
@@ -203,7 +202,7 @@ def _weighted_params(dominant: list[tuple[str, float]]) -> dict[str, float]:
     return params
 
 
-def _describe_level(value: float) -> str:
+def describe_level(value: float) -> str:
     if value >= 80:   return "very high"
     elif value >= 60: return "high"
     elif value >= 40: return "moderate"
@@ -214,7 +213,7 @@ def _describe_level(value: float) -> str:
 class PromptModifier:
     def build_system_prompt(self, entity: Entity, base_persona: str = "") -> str:
         dominant = entity.get_dominant_emotions(n=5)
-        params = _weighted_params(dominant)
+        params = weighted_params(dominant)
 
         # ── Persona block ──────────────────────────────────────────────────────
         persona_block = f"{base_persona}\n\n" if base_persona else ""

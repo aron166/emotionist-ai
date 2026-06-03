@@ -14,7 +14,7 @@ def _transition_rules(entity: Entity) -> list[tuple]:
     joy = entity.emotions.get("Joy")
 
     return [
-        # Fear → Anxiety (prolonged + uncertain): time_active > 3 steps
+        # Fear → Distress (prolonged, uncertain fear curdles into distress): time_active > 3 steps
         (fear, lambda e: e.is_active and e.time_active > 3, "Fear", "Distress", 0.75),
         # Shame → Anger (blame externalized)
         (shame, lambda e: e.is_active and e.intensity > 0.4, "Shame", "Anger", 0.60),
@@ -178,7 +178,7 @@ class OCCAppraisalEngine:
                 entity.emotions["Distress"].intensity > 0.6
             )
 
-            if w_self and wet in ("bad_news", "failure", "threat", "fears_confirmed") and not agent_is_sufferer:
+            if w_self and wet in ("bad_news", "failure", "threat") and not agent_is_sufferer:
                 # Witnessing someone suffer bad news / failure / threat
                 deltas["Pity"] = deltas.get("Pity", 0) + ws * 0.9
                 deltas["Distress"] = deltas.get("Distress", 0) + ws * 0.5
@@ -205,10 +205,7 @@ class OCCAppraisalEngine:
         for source_emotion, condition_fn, from_name, to_name, prob in _transition_rules(entity):
             if source_emotion is None:
                 continue
-            try:
-                if condition_fn(source_emotion) and random.random() < prob:
-                    carry = source_emotion.intensity * 0.3
-                    if to_name in entity.emotions:
-                        entity.emotions[to_name].activate(carry)
-            except Exception:
-                pass
+            if condition_fn(source_emotion) and random.random() < prob:
+                carry = source_emotion.intensity * 0.3
+                if to_name in entity.emotions:
+                    entity.emotions[to_name].activate(carry)

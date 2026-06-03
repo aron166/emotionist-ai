@@ -3,7 +3,7 @@ import os
 from groq import Groq
 
 
-SYSTEM_PROMPT = SYSTEM_PROMPT = """You are an emotion appraisal parser for a two-agent conversation system.
+SYSTEM_PROMPT = """You are an emotion appraisal parser for a two-agent conversation system.
 
 Your job: classify what emotional event the LISTENER experiences when receiving this message.
 

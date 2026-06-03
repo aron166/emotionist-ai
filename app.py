@@ -246,7 +246,7 @@ html, body, [class*="css"] {
 # ── Imports (after page config) ───────────────────────────────────────────────
 from agents.agent import Agent
 from engine.appraisal import REACTIVITY
-from engine.prompt_modifier import BEHAVIORAL_PROFILES, NEUTRAL_PROFILE, _weighted_params, _describe_level
+from engine.prompt_modifier import BEHAVIORAL_PROFILES, NEUTRAL_PROFILE, weighted_params, describe_level
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 EMOTION_COLORS = {
@@ -282,6 +282,10 @@ SAM_PERSONA = (
 )
 
 STARTER_TOPICS = {
+    "🐶 Dog died": (
+        "Alex",
+        "Sam, I had a car accident today and I lived thank god — but my dog Mr. Larry didn't make it."
+    ),
     "😰 Cancelled project": (
         "Alex",
         "Hey, I heard the big presentation got cancelled last minute — the client just pulled out entirely. Did you know about this?"
@@ -344,7 +348,7 @@ def render_emotion_panel(source):
 def render_behavioral_params(source):
     """source: Agent (live) or list of (name, intensity) tuples (snapshot)."""
     dominant = source.entity.get_dominant_emotions(n=5) if isinstance(source, Agent) else (source[:5] if source else [])
-    params = _weighted_params(dominant) if dominant else NEUTRAL_PROFILE.copy()
+    params = weighted_params(dominant) if dominant else NEUTRAL_PROFILE.copy()
 
     level_class = {
         "very high": "level-very-high", "high": "level-high",
@@ -357,7 +361,7 @@ def render_behavioral_params(source):
         ("creativity", "Creativ."), ("confidence", "Confid."),
         ("cooperation", "Cooperat."),
     ]:
-        lvl = _describe_level(params[key])
+        lvl = describe_level(params[key])
         cls = level_class.get(lvl, "level-moderate")
         chips += f'<div class="param-chip {cls}"><span class="param-label">{label}</span><span class="param-value">{lvl}</span></div>'
 
