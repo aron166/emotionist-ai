@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Emotionist.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="grain"></div>
+  <div class="chrome"></div>
+  <div class="glow"></div>
+
+  <header class="topbar">
+    <div class="brand">EMOTIONIST<span class="dot">.AI</span></div>
+    <div class="brand-sub">OCC Appraisal Engine — Emotional Agent Demo</div>
+  </header>
+
+  <main class="wrap">
+    <section class="controls">
+      <div class="topic-wrap">
+        <span class="micro">Scenario</span>
+        <select id="topic"></select>
+      </div>
+      <div class="btns">
+        <button id="reset" class="btn">Reset</button>
+        <button id="next" class="btn btn-primary">Next Turn</button>
+        <button id="run6" class="btn">Run 6 Turns</button>
+      </div>
+    </section>
+
+    <div class="opener" id="opener"></div>
+
+    <section class="stage">
+      <aside class="panel" id="panel-alex">
+        <div class="panel-head">
+          <div class="agent-name">Alex</div>
+          <span class="badge badge-neurotic">neurotic</span>
+        </div>
+        <div class="micro-label">Active Emotions</div>
+        <div class="emotions" id="emo-alex"></div>
+        <hr />
+        <div class="micro-label">Behavioral Profile</div>
+        <div class="params" id="par-alex"></div>
+        <div class="decay" id="decay-alex"></div>
+      </aside>
+
+      <div class="conv">
+        <div class="conv-head">
+          <span class="micro">Conversation</span>
+          <span class="pill" id="turnpill">Turn 0</span>
+        </div>
+        <div class="chat" id="chat"></div>
+        <div class="inject">
+          <input id="inject" type="text" placeholder="Inject a message to the next agent…" autocomplete="off" />
+          <button id="send" class="btn">Send</button>
+        </div>
+      </div>
+
+      <aside class="panel" id="panel-sam">
+        <div class="panel-head">
+          <div class="agent-name">Sam</div>
+          <span class="badge badge-resilient">resilient</span>
+        </div>
+        <div class="micro-label">Active Emotions</div>
+        <div class="emotions" id="emo-sam"></div>
+        <hr />
+        <div class="micro-label">Behavioral Profile</div>
+        <div class="params" id="par-sam"></div>
+        <div class="decay" id="decay-sam"></div>
+      </aside>
+    </section>
+
+    <footer class="foot">OCC Appraisal Theory &nbsp;·&nbsp; Groq LLaMA-3.3-70B &nbsp;·&nbsp; Emotionist.ai</footer>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
