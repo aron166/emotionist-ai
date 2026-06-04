@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Emotionist.ai — Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="grain"></div>
+  <div class="chrome"></div>
+  <div class="glow"></div>
+
+  <header class="topbar">
+    <div class="topbar-row">
+      <div>
+        <div class="brand">EMOTIONIST<span class="dot">.AI</span></div>
+        <div class="brand-sub">Single Agent — Talk To It Directly</div>
+      </div>
+      <nav class="nav">
+        <a href="/" class="nav-link">Two Agents</a>
+        <a href="/chat" class="nav-link active">Chat</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="stage chat-stage">
+      <!-- Config -->
+      <aside class="panel">
+        <div class="micro-label">Agent Setup</div>
+        <label class="field"><span class="micro">Name</span>
+          <input id="cfg-name" type="text" value="Morgan" autocomplete="off" />
+        </label>
+        <label class="field"><span class="micro">Personality</span>
+          <select id="cfg-personality"></select>
+        </label>
+        <label class="field"><span class="micro">Reactivity <em id="cfg-rx-val">1.00</em></span>
+          <input id="cfg-rx" type="range" min="0.3" max="2.0" step="0.05" value="1.0" />
+          <span class="hint" id="cfg-rx-ref"></span>
+        </label>
+        <label class="field"><span class="micro">Persona</span>
+          <textarea id="cfg-persona" rows="3">You are Morgan, a thoughtful person having a conversation.</textarea>
+        </label>
+
+        <div class="micro-label">Pre-seed Emotion</div>
+        <div class="seed-row">
+          <select id="cfg-seed"></select>
+          <input id="cfg-seed-int" type="range" min="0.1" max="1.0" step="0.05" value="0.5" />
+        </div>
+
+        <button id="apply" class="btn btn-primary apply-btn">Apply / Reset Agent</button>
+      </aside>
+
+      <!-- Chat -->
+      <div class="conv">
+        <div class="conv-head">
+          <span class="micro">Conversation</span>
+          <span class="pill" id="agent-pill">Morgan</span>
+        </div>
+        <div class="chat" id="chat"></div>
+        <div class="inject">
+          <input id="msg" type="text" placeholder="Say something to the agent…" aria-label="Message to agent" autocomplete="off" />
+          <button id="send" class="btn btn-primary">Send</button>
+        </div>
+      </div>
+
+      <!-- Live state -->
+      <aside class="panel">
+        <div class="panel-head">
+          <div class="agent-name" id="state-name">Morgan</div>
+          <span class="badge" id="state-badge">average</span>
+        </div>
+        <div class="micro-label">Active Emotions</div>
+        <div class="emotions" id="emo"></div>
+        <hr />
+        <div class="micro-label">Behavioral Profile</div>
+        <div class="params" id="par"></div>
+        <hr />
+        <div class="sysprompt-head">
+          <span class="micro-label" style="margin:0;">Live System Prompt</span>
+          <button id="sp-toggle" class="mini-btn">show</button>
+        </div>
+        <pre class="sysprompt" id="sysprompt" hidden></pre>
+        <div class="decay" id="decay"></div>
+      </aside>
+    </section>
+
+    <footer class="foot">OCC Appraisal Theory &nbsp;·&nbsp; Groq LLaMA-3.3-70B &nbsp;·&nbsp; Emotionist.ai</footer>
+  </main>
+
+  <script src="/common.js"></script>
+  <script src="/chat.js"></script>
+</body>
+</html>

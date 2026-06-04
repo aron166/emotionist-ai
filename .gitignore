@@ -7,4 +7,9 @@ __pycache__/
 .venv/
 venv/
 CLAUDE.md
-/graphify-out
+graphify-out/
+
+# AI dev / agent + interview-prep artifacts — local only, never publish
+PREP_STATUS.md
+PRESENTATION.md
+RESEARCH_OBSERVATIONS_SESSION2.md

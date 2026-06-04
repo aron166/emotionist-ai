@@ -50,7 +50,6 @@ html, body, [class*="css"] { font-family: 'Source Sans 3', sans-serif; }
 
 from agents.agent import Agent
 from engine.appraisal import REACTIVITY
-from engine.prompt_modifier import BEHAVIORAL_PROFILES, NEUTRAL_PROFILE, _weighted_params, _describe_level
 
 EMOTION_COLORS = {
     "Joy":"#f59e0b","Hope":"#10b981","Satisfaction":"#84cc16","Relief":"#06b6d4",
