@@ -4,6 +4,7 @@
 <div align="center">
 
 [![Python][Python-shield]][Python-url]
+[![FastAPI][FastAPI-shield]][FastAPI-url]
 [![Streamlit][Streamlit-shield]][Streamlit-url]
 [![Groq][Groq-shield]][Groq-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
@@ -85,8 +86,20 @@ The system implements the OCC (Ortony, Clore & Collins) appraisal model — the 
 ### Built With
 
 [![Python][Python-shield]][Python-url]
+[![FastAPI][FastAPI-shield]][FastAPI-url]
 [![Streamlit][Streamlit-shield]][Streamlit-url]
 [![Groq][Groq-shield]][Groq-url]
+
+| Layer | Technology |
+|-------|-----------|
+| Language | Python 3.13 |
+| LLM inference | Groq — `llama-3.3-70b-versatile` |
+| Flagship UI | **FastAPI** backend + hand-built **vanilla HTML / CSS / JS** frontend (no build step) |
+| Fallback UI | **Streamlit** multipage app (3 pages) |
+| Config | `python-dotenv` |
+| Tooling | `uv` (virtualenv + dependency management) |
+
+The emotion engine is **pure Python and UI-agnostic** — `server.py` (FastAPI) and `app.py` (Streamlit) are both thin presentation layers over the exact same `agents` / `engine` / `entity` core.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -202,23 +215,25 @@ Witness emotion mappings:
 ### Prerequisites
 
 - Python 3.13 (tested on Windows 11)
+- [`uv`](https://docs.astral.sh/uv/) — recommended for env + dependency management (plain `pip` works too)
 - A free Groq API key from [console.groq.com](https://console.groq.com)
 
 ### Installation
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/your-username/Emotionist.ai.git
-   cd Emotionist.ai
+   git clone https://github.com/aron166/emotionist.ai.git
+   cd emotionist.ai
    ```
-2. Install dependencies
+2. Create the environment and install dependencies
    ```sh
-   pip install -r requirements.txt
+   uv venv
+   uv pip install -r requirements.txt
    ```
-3. Configure your API key
+   <sub>Or with plain pip: `python -m venv .venv && .venv\Scripts\activate && pip install -r requirements.txt`</sub>
+3. Configure your API key — create a `.env` file in the project root:
    ```sh
-   cp .env.example .env
-   # open .env and add your GROQ_API_KEY
+   GROQ_API_KEY=your_key_here
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -227,27 +242,37 @@ Witness emotion mappings:
 ## Usage
 
 ```bash
-# Full Streamlit UI (recommended)
-python -m streamlit run app.py
+# Flagship web UI — FastAPI + custom frontend (recommended)
+uv run python server.py
+# → open http://127.0.0.1:8000
 
 # CLI demo — no UI, prints emotional state each turn
-python main.py
+uv run python main.py
 ```
 
-> Use `python -m streamlit` — the `streamlit` binary may not be on PATH after pip install.
+> Not using `uv`? Activate your venv first, then run `python server.py` / `python main.py`.
 
-### The UI — three pages
+### Flagship UI — the custom frontend (`server.py` + `web/`)
 
-**`app.py` — Flagship demo.** Alex (neurotic) vs Sam (resilient) in a live two-agent conversation. Preset conversation starters, **Next turn** / **Run 6 turns** controls, **Inject a message** mid-conversation to steer the trajectory, live emotion intensity bars and behavioral profile chips, a **timeline scrubber** to drag back to any previous turn, and a **reactivity settings expander** to adjust each agent's emotional spike multiplier independently.
+A hand-built dark interface (FastAPI backend, vanilla HTML/CSS/JS — **no build step**) served at **http://127.0.0.1:8000**. Two views via the top nav:
 
-**💬 Chat — Single-agent chat.** Direct conversation with one fully configurable agent. Set name, personality, persona backstory, pre-seed starting emotions, and reactivity. The **"Show live system prompt"** toggle is the key demo feature — it shows exactly what the LLM is being instructed to feel on each turn.
+**🤝 Two Agents.** Alex (neurotic) vs Sam (resilient) in a live two-agent conversation. Preset conversation starters, **Next Turn** / **Run 6 Turns** controls, mid-conversation message injection, and live emotion intensity bars + behavioral profile chips for both agents side by side.
 
-**🎬 Scenarios — Scene designer.** Full two-agent scene builder. Configure both agents from scratch with five built-in presets and documented emotional trajectories. Adjustable auto-run (2–20 turns) and mid-conversation injection.
+**💬 Chat.** Direct conversation with one fully configurable agent — set name, personality, persona backstory, reactivity, and pre-seed starting emotions. The **"Show live system prompt"** toggle is the key demo feature: it reveals exactly what the LLM is being instructed to *feel* on each turn (the "you **are** angry, not act angry" detail).
 
-<!-- Replace with screenshots: -->
+### Fallback UI — Streamlit (`app.py`)
+
+The original Streamlit multipage app is kept in-repo as a working fallback:
+
+```bash
+uv run streamlit run app.py   # → http://127.0.0.1:8501
+```
+
+It ships three pages: the **flagship Alex vs Sam demo** (with a timeline scrubber and reactivity expander), a **💬 Chat** single-agent page, and a **🎬 Scenarios** two-agent scene builder with five built-in presets and adjustable auto-run.
+
+<!-- Replace with screenshots: docs/screenshot-app.png, docs/screenshot-chat.png -->
 <div align="center">
   <img src="docs/screenshot-chat.png" alt="Single-agent chat" width="720">
-  <img src="docs/screenshot-scenarios.png" alt="Scenario builder" width="720">
 </div>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -305,10 +330,15 @@ emotionist.ai/
 │   └── prompt_modifier.py  # PromptModifier — emotion state → system prompt
 ├── agents/
 │   └── agent.py            # Agent — full pipeline, witness_event support, stores last_event
-├── pages/
-│   ├── 1_💬_Chat.py        # Single-agent configurable chat
-│   └── 2_🎬_Scenarios.py   # Two-agent scenario builder
-├── app.py                  # Streamlit flagship demo (Alex vs Sam)
+├── web/                    # Flagship frontend — vanilla HTML/CSS/JS, no build step
+│   ├── index.html          #   Two Agents view (Alex vs Sam)
+│   ├── chat.html           #   Single-agent Chat view (live system-prompt toggle)
+│   └── common.js           #   Shared render helpers
+├── pages/                  # Streamlit fallback pages
+│   ├── 1_💬_Chat.py        #   Single-agent configurable chat
+│   └── 2_🎬_Scenarios.py   #   Two-agent scenario builder
+├── server.py               # FastAPI backend for the flagship web UI
+├── app.py                  # Streamlit fallback demo (Alex vs Sam)
 ├── main.py                 # CLI demo — no UI
 └── .env                    # GROQ_API_KEY goes here
 ```
@@ -336,7 +366,8 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 - Ortony, Clore & Collins — *The Cognitive Structure of Emotions* (1988) — the OCC model that underpins this system
 - [Groq](https://groq.com) — fast LLM inference that makes per-turn appraisal calls viable
-- [Streamlit](https://streamlit.io) — the UI layer
+- [FastAPI](https://fastapi.tiangolo.com) — backend for the flagship web UI
+- [Streamlit](https://streamlit.io) — the fallback UI layer
 - [Best-README-Template](https://github.com/othneildrew/Best-README-Template) — README structure
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -344,9 +375,11 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- MARKDOWN LINKS & IMAGES -->
 [Python-shield]: https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white
 [Python-url]: https://www.python.org/
+[FastAPI-shield]: https://img.shields.io/badge/FastAPI-0.136-009688?style=for-the-badge&logo=fastapi&logoColor=white
+[FastAPI-url]: https://fastapi.tiangolo.com/
 [Streamlit-shield]: https://img.shields.io/badge/Streamlit-1.35+-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white
 [Streamlit-url]: https://streamlit.io/
 [Groq-shield]: https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge
 [Groq-url]: https://groq.com/
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=0A66C2
-[linkedin-url]: https://linkedin.com/in/YOUR-LINKEDIN-HANDLE
+[linkedin-url]: https://www.linkedin.com/in/aron-balogh166/
