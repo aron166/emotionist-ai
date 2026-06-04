@@ -208,7 +208,7 @@ Witness emotion mappings:
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/your-username/Emotionist.ai.git
+   git clone https://github.com/aron166/emotionist.ai.git
    cd Emotionist.ai
    ```
 2. Install dependencies
@@ -349,4 +349,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 [Groq-shield]: https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge
 [Groq-url]: https://groq.com/
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=0A66C2
-[linkedin-url]: https://linkedin.com/in/YOUR-LINKEDIN-HANDLE
+[linkedin-url]: https://www.linkedin.com/in/aron-balogh166/
