@@ -10,13 +10,13 @@ The theoretical backbone is the **OCC (Ortony, Clore & Collins) appraisal model*
 ## Running the project
 
 ```bash
-pip install -r requirements.txt        # groq, python-dotenv, streamlit
+pip install -r requirements.txt        # groq, python-dotenv, fastapi, uvicorn
 cp .env.example .env                   # add GROQ_API_KEY
-python -m streamlit run app.py         # full Streamlit UI (use python -m, not just streamlit)
+python server.py                       # FastAPI web UI → http://127.0.0.1:8000
 python main.py                         # CLI two-agent loop (no UI)
 ```
 
-The `streamlit` binary may not be on PATH after pip install — always use `python -m streamlit run app.py`.
+`server.py` serves the `web/` frontend and a JSON state API; open http://127.0.0.1:8000.
 
 ## Architecture
 
@@ -93,7 +93,7 @@ Witness mappings:
 - Sender received `good_news / achievement` → `HappyFor`, `Joy`
 - Sender received `compliment` → `HappyFor`
 
-`sender.last_event` is passed in `do_turn()` in `app.py` and both turn-execution paths in `pages/2_🎬_Scenarios.py`. The Chat page has no second agent — `witness_event` stays `None` there.
+`sender.last_event` is passed as `witness_event` in `EngineState.step()` in `server.py` (the two-agent flow). The single-agent chat (`ChatState.send()`) has no second agent — `witness_event` stays `None` there.
 
 ### 5. `Agent.last_event` has two consumers
 
@@ -101,15 +101,11 @@ Populated after every `receive_and_respond()` call. Do not remove:
 1. UI — appraisal event badge display (event type, severity, flags)
 2. Turn engine — passed as `witness_event` to the other agent's next `receive_and_respond()`
 
-### 6. Slider guard in app.py
-
-The timeline scrubber only renders when `n_msgs > 1`. Streamlit raises `StreamlitAPIException` when `min_value == max_value` on a slider — with one message, both bounds would be 1.
-
-### 7. Emotions are first-person experiences in the prompt
+### 6. Emotions are first-person experiences in the prompt
 
 `PromptModifier` doesn't say "aggression: high." It says *"You are angry right now — genuinely, physically angry."* Each of the ~30 emotions has a distinct visceral description in `EMOTION_EXPERIENCES`. The LLM inhabits the state rather than following abstract rules.
 
-### 8. Compound emotions fire directly
+### 7. Compound emotions fire directly
 
 Anger, Gratification, Gratitude, Remorse are activated directly in `appraisal.py` when both component conditions fire simultaneously. They are not derived from simpler emotions at runtime.
 
@@ -127,20 +123,19 @@ Anger, Gratification, Gratitude, Remorse are activated directly in `appraisal.py
 | `engine/appraisal.py` | `OCCAppraisalEngine` — OCC rules + witness empathy track in `compute_deltas(event, entity, witness_event)`. `REACTIVITY` dict (personality defaults). `apply_transitions()` for cascades. |
 | `engine/prompt_modifier.py` | `PromptModifier` — emotion state → first-person system prompt. Exports `BEHAVIORAL_PROFILES`, `NEUTRAL_PROFILE`, `weighted_params`, `describe_level` for UI use. |
 | `agents/agent.py` | `Agent` — full pipeline. `receive_and_respond(incoming_message, witness_event=None)`. Stores `last_event`. Constructor: `Agent(name, personality, base_persona, model, reactivity=None)`. |
-| `app.py` | Flagship two-agent demo. `init_state()` reads `alex_reactivity` / `sam_reactivity` from session state. `do_turn()` passes `sender.last_event` as `witness_event`. Timeline scrubber (n_msgs > 1 guard). Reactivity expander. |
-| `pages/1_💬_Chat.py` | Single-agent chat. Sidebar: reactivity slider (key tied to personality, auto-resets default on personality change). State panel shows λ and reactivity. |
-| `pages/2_🎬_Scenarios.py` | Two-agent scene builder. Reactivity sliders in agent config. Both `Next Turn` and `Run N Turns` pass `sender.last_event` as `witness_event`. |
+| `server.py` | FastAPI backend. `EngineState` (two-agent: `step()` passes `sender.last_event` as `witness_event`) + `ChatState` (single-agent). Serves `web/` and JSON state at `/api/state\|reset\|turn` and `/api/chat/state\|reset\|send`. |
+| `web/` | Frontend (vanilla HTML/CSS/JS, no build): `index.html` Two-Agents view, `chat.html` single-agent Chat view, `app.js`/`chat.js` per-view logic, `common.js` shared render helpers, `style.css`. |
 | `main.py` | CLI demo — no UI, prints emotional state each turn |
 
 ---
 
-## Streamlit UI — three pages
+## Web UI — two views (`server.py` + `web/`)
 
-1. **app.py** — Flagship demo. Alex (neurotic) vs Sam (resilient). Preset starters, next-turn / run-6-turns, inject, emotion bars, behavioral profile chips, timeline scrubber, reactivity expander.
+FastAPI backend, hand-built vanilla HTML/CSS/JS frontend (no build step), served at http://127.0.0.1:8000.
 
-2. **💬 Chat** — Single-agent chat. Sidebar: name, personality, reactivity, persona, pre-seed emotions, system prompt toggle. State panel: live emotion bars, decay rate, reactivity multiplier.
+1. **Two Agents** (`index.html`) — Alex (neurotic) vs Sam (resilient). Preset starters, Next Turn / Run 6 Turns, mid-conversation injection, side-by-side emotion bars + behavioral profile chips.
 
-3. **🎬 Scenarios** — Full scene designer. Both agents configurable (name, personality, reactivity, persona, seed emotions). Five built-in presets. Auto-run 2–20 turns. Mid-conversation injection.
+2. **Chat** (`chat.html`) — Single-agent chat. Configure name, personality, reactivity, persona, pre-seed emotions. Live emotion bars, decay rate, reactivity multiplier, and a **"Show live system prompt"** toggle.
 
 ---
 

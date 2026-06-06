@@ -70,7 +70,7 @@ def run_demo(turns: int = 8):
     for turn in range(1, turns + 1):
         responder, sender = responders[(turn - 1) % 2]
         # Pass the sender's last appraised event so the responder reacts to what it
-        # *witnessed*, not just the surface words — mirrors the witness track in app.py.
+        # *witnessed*, not just the surface words — mirrors the witness track in server.py.
         reply = responder.receive_and_respond(current_message, witness_event=sender.last_event or None)
         print_turn(turn, responder.name, reply, responder.get_state_display())
         current_message = reply

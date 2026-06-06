@@ -61,7 +61,7 @@ STARTER_TOPICS = {
 # ── Game state (single-user local demo) ───────────────────────────────────────
 class Game:
     """Holds the two agents and the turn loop. One global instance — this is a
-    local single-user demo, same scope as the original Streamlit session."""
+    single-user local demo, so global state is intentional."""
 
     def __init__(self):
         self.reset("Cancelled project")

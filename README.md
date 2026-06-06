@@ -5,7 +5,6 @@
 
 [![Python][Python-shield]][Python-url]
 [![FastAPI][FastAPI-shield]][FastAPI-url]
-[![Streamlit][Streamlit-shield]][Streamlit-url]
 [![Groq][Groq-shield]][Groq-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
@@ -87,19 +86,17 @@ The system implements the OCC (Ortony, Clore & Collins) appraisal model — the 
 
 [![Python][Python-shield]][Python-url]
 [![FastAPI][FastAPI-shield]][FastAPI-url]
-[![Streamlit][Streamlit-shield]][Streamlit-url]
 [![Groq][Groq-shield]][Groq-url]
 
 | Layer | Technology |
 |-------|-----------|
 | Language | Python 3.13 |
 | LLM inference | Groq — `llama-3.3-70b-versatile` |
-| Flagship UI | **FastAPI** backend + hand-built **vanilla HTML / CSS / JS** frontend (no build step) |
-| Fallback UI | **Streamlit** multipage app (3 pages) |
+| UI | **FastAPI** backend + hand-built **vanilla HTML / CSS / JS** frontend (no build step) |
 | Config | `python-dotenv` |
 | Tooling | `uv` (virtualenv + dependency management) |
 
-The emotion engine is **pure Python and UI-agnostic** — `server.py` (FastAPI) and `app.py` (Streamlit) are both thin presentation layers over the exact same `agents` / `engine` / `entity` core.
+The emotion engine is **pure Python and UI-agnostic** — `server.py` (FastAPI) is a thin presentation layer over the `agents` / `engine` / `entity` core.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -260,16 +257,6 @@ A hand-built dark interface (FastAPI backend, vanilla HTML/CSS/JS — **no build
 
 **💬 Chat.** Direct conversation with one fully configurable agent — set name, personality, persona backstory, reactivity, and pre-seed starting emotions. The **"Show live system prompt"** toggle is the key demo feature: it reveals exactly what the LLM is being instructed to *feel* on each turn (the "you **are** angry, not act angry" detail).
 
-### Fallback UI — Streamlit (`app.py`)
-
-The original Streamlit multipage app is kept in-repo as a working fallback:
-
-```bash
-uv run streamlit run app.py   # → http://127.0.0.1:8501
-```
-
-It ships three pages: the **flagship Alex vs Sam demo** (with a timeline scrubber and reactivity expander), a **💬 Chat** single-agent page, and a **🎬 Scenarios** two-agent scene builder with five built-in presets and adjustable auto-run.
-
 <!-- Replace with screenshots: docs/screenshot-app.png, docs/screenshot-chat.png -->
 <div align="center">
   <img src="docs/screenshot-chat.png" alt="Single-agent chat" width="720">
@@ -330,15 +317,13 @@ emotionist.ai/
 │   └── prompt_modifier.py  # PromptModifier — emotion state → system prompt
 ├── agents/
 │   └── agent.py            # Agent — full pipeline, witness_event support, stores last_event
-├── web/                    # Flagship frontend — vanilla HTML/CSS/JS, no build step
+├── web/                    # Frontend — vanilla HTML/CSS/JS, no build step
 │   ├── index.html          #   Two Agents view (Alex vs Sam)
 │   ├── chat.html           #   Single-agent Chat view (live system-prompt toggle)
-│   └── common.js           #   Shared render helpers
-├── pages/                  # Streamlit fallback pages
-│   ├── 1_💬_Chat.py        #   Single-agent configurable chat
-│   └── 2_🎬_Scenarios.py   #   Two-agent scenario builder
-├── server.py               # FastAPI backend for the flagship web UI
-├── app.py                  # Streamlit fallback demo (Alex vs Sam)
+│   ├── app.js / chat.js    #   Per-view logic
+│   ├── common.js           #   Shared render helpers
+│   └── style.css           #   Styles
+├── server.py               # FastAPI backend serving the web UI + JSON state API
 ├── main.py                 # CLI demo — no UI
 └── .env                    # GROQ_API_KEY goes here
 ```
@@ -366,8 +351,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 - Ortony, Clore & Collins — *The Cognitive Structure of Emotions* (1988) — the OCC model that underpins this system
 - [Groq](https://groq.com) — fast LLM inference that makes per-turn appraisal calls viable
-- [FastAPI](https://fastapi.tiangolo.com) — backend for the flagship web UI
-- [Streamlit](https://streamlit.io) — the fallback UI layer
+- [FastAPI](https://fastapi.tiangolo.com) — backend for the web UI
 - [Best-README-Template](https://github.com/othneildrew/Best-README-Template) — README structure
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -377,8 +361,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 [Python-url]: https://www.python.org/
 [FastAPI-shield]: https://img.shields.io/badge/FastAPI-0.136-009688?style=for-the-badge&logo=fastapi&logoColor=white
 [FastAPI-url]: https://fastapi.tiangolo.com/
-[Streamlit-shield]: https://img.shields.io/badge/Streamlit-1.35+-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white
-[Streamlit-url]: https://streamlit.io/
 [Groq-shield]: https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge
 [Groq-url]: https://groq.com/
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=0A66C2
