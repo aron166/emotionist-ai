@@ -61,6 +61,15 @@ Message: "Let's just walk and see where we end up."
 
 Respond ONLY with the JSON object, no explanation."""
 
+# Returned when the LLM response cannot be parsed — a low-severity neutral
+# event leaves the agent's emotional state effectively untouched.
+FALLBACK_EVENT = {
+    "event_type": "neutral",
+    "severity": 0.1,
+    "directed_at_self": False,
+    "intentional": False,
+}
+
 
 class AppraisalEvaluator:
     def __init__(self, model: str = "llama-3.3-70b-versatile"):
@@ -87,10 +96,13 @@ class AppraisalEvaluator:
         try:
             event = json.loads(raw)
         except json.JSONDecodeError:
-            event = {
-                "event_type": "neutral",
-                "severity": 0.1,
-                "directed_at_self": False,
-                "intentional": False,
-            }
+            return dict(FALLBACK_EVENT)
+        if not isinstance(event, dict):
+            return dict(FALLBACK_EVENT)
+        # Fill any missing fields and keep severity in the expected range.
+        event = {**FALLBACK_EVENT, **event}
+        try:
+            event["severity"] = max(0.0, min(1.0, float(event["severity"])))
+        except (TypeError, ValueError):
+            event["severity"] = FALLBACK_EVENT["severity"]
         return event

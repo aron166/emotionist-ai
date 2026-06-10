@@ -210,6 +210,47 @@ def describe_level(value: float) -> str:
     else:             return "very low"
 
 
+def _tone_instruction(params: dict[str, float]) -> str:
+    """Translate behavioral parameter values into natural-language tone directives."""
+    lines = []
+
+    agg = params["aggression"]
+    if agg >= 75:
+        lines.append("You are confrontational and blunt. You don't soften things.")
+    elif agg >= 55:
+        lines.append("You are assertive and direct. You say what you mean.")
+    elif agg >= 35:
+        lines.append("You are measured. You push back when needed but don't lead with it.")
+    else:
+        lines.append("You are gentle and non-confrontational. You avoid friction.")
+
+    opn = params["openness"]
+    if opn >= 75:
+        lines.append("You are genuinely open — to ideas, to being wrong, to the other person.")
+    elif opn >= 45:
+        lines.append("You are selectively open. You'll engage with good-faith input.")
+    else:
+        lines.append("You are closed off right now. You're not looking for new perspectives.")
+
+    conf = params["confidence"]
+    if conf >= 75:
+        lines.append("You speak with conviction. You don't second-guess yourself out loud.")
+    elif conf >= 40:
+        lines.append("You have moderate self-assurance. You're uncertain about some things.")
+    else:
+        lines.append("You're hesitant. You hedge. You don't fully trust your own read.")
+
+    coop = params["cooperation"]
+    if coop >= 75:
+        lines.append("You want to work with the other person. You look for common ground.")
+    elif coop >= 40:
+        lines.append("You cooperate conditionally — if it feels worth it.")
+    else:
+        lines.append("You're not interested in cooperating right now. You're in it for yourself.")
+
+    return " ".join(lines)
+
+
 class PromptModifier:
     def build_system_prompt(self, entity: Entity, base_persona: str = "") -> str:
         dominant = entity.get_dominant_emotions(n=5)
@@ -237,45 +278,6 @@ class PromptModifier:
             emotion_block = "## Your emotional state right now\n\nYou feel calm and neutral. Engage naturally.\n\n"
 
         # ── Behavioral parameters ──────────────────────────────────────────────
-        def _tone_instruction(params: dict) -> str:
-            lines = []
-
-            agg = params["aggression"]
-            if agg >= 75:
-                lines.append("You are confrontational and blunt. You don't soften things.")
-            elif agg >= 55:
-                lines.append("You are assertive and direct. You say what you mean.")
-            elif agg >= 35:
-                lines.append("You are measured. You push back when needed but don't lead with it.")
-            else:
-                lines.append("You are gentle and non-confrontational. You avoid friction.")
-
-            opn = params["openness"]
-            if opn >= 75:
-                lines.append("You are genuinely open — to ideas, to being wrong, to the other person.")
-            elif opn >= 45:
-                lines.append("You are selectively open. You'll engage with good-faith input.")
-            else:
-                lines.append("You are closed off right now. You're not looking for new perspectives.")
-
-            conf = params["confidence"]
-            if conf >= 75:
-                lines.append("You speak with conviction. You don't second-guess yourself out loud.")
-            elif conf >= 40:
-                lines.append("You have moderate self-assurance. You're uncertain about some things.")
-            else:
-                lines.append("You're hesitant. You hedge. You don't fully trust your own read.")
-
-            coop = params["cooperation"]
-            if coop >= 75:
-                lines.append("You want to work with the other person. You look for common ground.")
-            elif coop >= 40:
-                lines.append("You cooperate conditionally — if it feels worth it.")
-            else:
-                lines.append("You're not interested in cooperating right now. You're in it for yourself.")
-
-            return " ".join(lines)
-
         behaviour_block = (
             "## How your emotions shape your behaviour\n\n"
             + _tone_instruction(params) + "\n\n"

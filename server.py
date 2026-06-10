@@ -9,7 +9,6 @@ Run:  uv run python server.py     (or: uv run uvicorn server:app --reload)
 """
 
 import os
-from contextlib import suppress
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -61,7 +60,7 @@ STARTER_TOPICS = {
 # ── Game state (single-user local demo) ───────────────────────────────────────
 class Game:
     """Holds the two agents and the turn loop. One global instance — this is a
-    local single-user demo, same scope as the original Streamlit session."""
+    single-user local demo, so global state is intentional."""
 
     def __init__(self):
         self.reset("Cancelled project")
@@ -113,7 +112,7 @@ GAME = Game()
 
 
 # ── Serialization ─────────────────────────────────────────────────────────────
-PARAM_KEYS = ["aggression", "openness", "creativity", "confidence", "cooperation"]
+PARAM_KEYS = list(NEUTRAL_PROFILE)
 
 
 def agent_state(agent: Agent) -> dict:

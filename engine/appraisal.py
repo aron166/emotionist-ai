@@ -2,35 +2,30 @@ import random
 from entity.entity import Entity
 
 
-# Emotion transition rules from emotionTransitions research data
+# Emotion transition rules from emotionTransitions research data.
 # Format: (from_emotion, condition_fn, to_emotion, probability)
-def _transition_rules(entity: Entity) -> list[tuple]:
-    fear = entity.emotions.get("Fear")
-    shame = entity.emotions.get("Shame")
-    anger = entity.emotions.get("Anger")
-    distress = entity.emotions.get("Distress")
-    hope = entity.emotions.get("Hope")
-    disappointment = entity.emotions.get("Disappointment")
-    joy = entity.emotions.get("Joy")
+TRANSITION_RULES: list[tuple] = [
+    # Fear → Distress (prolonged, uncertain fear curdles into distress)
+    ("Fear", lambda e: e.is_active and e.time_active > 3, "Distress", 0.75),
+    # Shame → Anger (blame externalized)
+    ("Shame", lambda e: e.is_active and e.intensity > 0.4, "Anger", 0.60),
+    # Shame → Sadness (internalized + chronic)
+    ("Shame", lambda e: e.is_active and e.time_active > 5, "Sadness", 0.55),
+    # Anger → Guilt (harm caused to liked agent)
+    ("Anger", lambda e: e.is_active and e.intensity > 0.6, "Guilt", 0.50),
+    # Distress → Sadness (coping failed + time)
+    ("Distress", lambda e: e.is_active and e.time_active > 4, "Sadness", 0.80),
+    # Hope → Anticipation (likelihood increases)
+    ("Hope", lambda e: e.is_active and e.intensity > 0.5, "Anticipation", 0.70),
+    # Disappointment → Resentment (other-agency)
+    ("Disappointment", lambda e: e.is_active and e.intensity > 0.4, "Resentment", 0.55),
+    # Joy → Gratitude (other-agency identified)
+    ("Joy", lambda e: e.is_active and e.intensity > 0.5, "Gratitude", 0.65),
+]
 
-    return [
-        # Fear → Distress (prolonged, uncertain fear curdles into distress): time_active > 3 steps
-        (fear, lambda e: e.is_active and e.time_active > 3, "Fear", "Distress", 0.75),
-        # Shame → Anger (blame externalized)
-        (shame, lambda e: e.is_active and e.intensity > 0.4, "Shame", "Anger", 0.60),
-        # Shame → Sadness (internalized + chronic)
-        (shame, lambda e: e.is_active and e.time_active > 5, "Shame", "Sadness", 0.55),
-        # Anger → Guilt (harm caused to liked agent)
-        (anger, lambda e: e.is_active and e.intensity > 0.6, "Anger", "Guilt", 0.50),
-        # Distress → Sadness (coping failed + time)
-        (distress, lambda e: e.is_active and e.time_active > 4, "Distress", "Sadness", 0.80),
-        # Hope → Anticipation (likelihood increases)
-        (hope, lambda e: e.is_active and e.intensity > 0.5, "Hope", "Anticipation", 0.70),
-        # Disappointment → Resentment (other-agency)
-        (disappointment, lambda e: e.is_active and e.intensity > 0.4, "Disappointment", "Resentment", 0.55),
-        # Joy → Gratitude (other-agency identified)
-        (joy, lambda e: e.is_active and e.intensity > 0.5, "Joy", "Gratitude", 0.65),
-    ]
+# Fraction of the source emotion's intensity carried over to the target emotion
+# when a transition fires.
+TRANSITION_CARRY = 0.3
 
 
 REACTIVITY = {
@@ -44,7 +39,7 @@ class OCCAppraisalEngine:
     """Maps structured appraisal events to emotion intensity deltas using OCC rules."""
 
     def compute_deltas(
-        self, event: dict, entity: Entity, witness_event: dict = None
+        self, event: dict, entity: Entity, witness_event: dict | None = None
     ) -> dict[str, float]:
         """
         Returns a dict of {emotion_name: delta} to apply to the entity.
@@ -202,10 +197,10 @@ class OCCAppraisalEngine:
 
     def apply_transitions(self, entity: Entity):
         """Check and probabilistically fire emotion transitions."""
-        for source_emotion, condition_fn, from_name, to_name, prob in _transition_rules(entity):
-            if source_emotion is None:
+        for from_name, condition_fn, to_name, prob in TRANSITION_RULES:
+            source = entity.emotions.get(from_name)
+            target = entity.emotions.get(to_name)
+            if source is None or target is None:
                 continue
-            if condition_fn(source_emotion) and random.random() < prob:
-                carry = source_emotion.intensity * 0.3
-                if to_name in entity.emotions:
-                    entity.emotions[to_name].activate(carry)
+            if condition_fn(source) and random.random() < prob:
+                target.activate(source.intensity * TRANSITION_CARRY)

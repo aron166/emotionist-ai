@@ -13,7 +13,7 @@ class Agent:
         personality: str = "average",
         base_persona: str = "",
         model: str = "llama-3.3-70b-versatile",
-        reactivity: float = None,
+        reactivity: float | None = None,
     ):
         self.name = name
         self.base_persona = base_persona
@@ -27,7 +27,7 @@ class Agent:
         self.conversation_history: list[dict] = []
         self.last_event: dict = {}
 
-    def receive_and_respond(self, incoming_message: str, witness_event: dict = None) -> str:
+    def receive_and_respond(self, incoming_message: str, witness_event: dict | None = None) -> str:
         """
         Full pipeline: appraise incoming message → update emotional state →
         build emotionally-modulated prompt → generate response.
