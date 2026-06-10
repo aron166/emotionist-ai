@@ -9,7 +9,6 @@ Run:  uv run python server.py     (or: uv run uvicorn server:app --reload)
 """
 
 import os
-from contextlib import suppress
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -113,7 +112,7 @@ GAME = Game()
 
 
 # ── Serialization ─────────────────────────────────────────────────────────────
-PARAM_KEYS = ["aggression", "openness", "creativity", "confidence", "cooperation"]
+PARAM_KEYS = list(NEUTRAL_PROFILE)
 
 
 def agent_state(agent: Agent) -> dict:

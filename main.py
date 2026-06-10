@@ -59,9 +59,8 @@ def run_demo(turns: int = 8):
 
     # Alex starts the conversation
     current_message = OPENING_TOPIC
-    current_speaker = "Alex (opening)"
     print(f"\n{SEPARATOR}")
-    print(f"  Opening message from Alex:")
+    print("  Opening message from Alex:")
     print(f"  \"{current_message}\"")
 
     # Sam responds first, then they alternate

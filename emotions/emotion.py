@@ -2,6 +2,10 @@ import math
 
 
 class Emotion:
+    # Intensity below this is treated as "not felt": the emotion deactivates
+    # on decay and does not activate on tiny deltas.
+    ACTIVATION_THRESHOLD = 0.05
+
     def __init__(self, name: str, valence: int, decay_rate: float, max_duration: int = 20):
         self.name = name
         self.valence = valence        # 1 = positive, -1 = negative, 0 = mixed
@@ -14,7 +18,7 @@ class Emotion:
     def activate(self, delta: float):
         """Increase intensity by delta, capped at 1.0."""
         self.intensity = min(1.0, self.intensity + delta)
-        if self.intensity > 0.05:
+        if self.intensity > self.ACTIVATION_THRESHOLD:
             self.is_active = True
 
     def decay(self):
@@ -23,7 +27,7 @@ class Emotion:
             return
         self.time_active += 1
         self.intensity = self.intensity * math.exp(-self.decay_rate)
-        if self.intensity < 0.05 or self.time_active >= self.max_duration:
+        if self.intensity < self.ACTIVATION_THRESHOLD or self.time_active >= self.max_duration:
             self.intensity = 0.0
             self.is_active = False
             self.time_active = 0

@@ -13,8 +13,6 @@
 <!-- PROJECT LOGO / BANNER -->
 <br />
 <div align="center">
-  <!-- Replace with your banner image: docs/banner.png -->
-  <img src="docs/banner.png" alt="Emotionist.ai banner" width="720">
 
   <h1 align="center">Emotionist.ai</h1>
 
@@ -66,13 +64,6 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-
-<!-- Replace with a screenshot of the flagship demo: docs/screenshot-app.png -->
-<div align="center">
-  <img src="docs/screenshot-app.png" alt="Flagship demo screenshot" width="720">
-</div>
-
-<br />
 
 Emotionist.ai is a computational emotion modeling system where AI agents don't just respond to words — they **appraise events, accumulate emotional states over time, and have their language shaped by how they feel**. A neurotic agent hit with bad news will still be distressed three turns later. A resilient one bounces back fast.
 
@@ -227,10 +218,11 @@ Witness emotion mappings:
    uv venv
    uv pip install -r requirements.txt
    ```
-   <sub>Or with plain pip: `python -m venv .venv && .venv\Scripts\activate && pip install -r requirements.txt`</sub>
-3. Configure your API key — create a `.env` file in the project root:
+   <sub>Or with plain pip: `python -m venv .venv`, activate it (`.venv\Scripts\activate` on Windows), then `pip install -r requirements.txt`</sub>
+3. Configure your API key — copy the template and fill in your key:
    ```sh
-   GROQ_API_KEY=your_key_here
+   cp .env.example .env
+   # then edit .env: GROQ_API_KEY=your_key_here
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -253,14 +245,9 @@ uv run python main.py
 
 A hand-built dark interface (FastAPI backend, vanilla HTML/CSS/JS — **no build step**) served at **http://127.0.0.1:8000**. Two views via the top nav:
 
-**🤝 Two Agents.** Alex (neurotic) vs Sam (resilient) in a live two-agent conversation. Preset conversation starters, **Next Turn** / **Run 6 Turns** controls, mid-conversation message injection, and live emotion intensity bars + behavioral profile chips for both agents side by side.
+**Two Agents.** Alex (neurotic) vs Sam (resilient) in a live two-agent conversation. Preset conversation starters, **Next Turn** / **Run 6 Turns** controls, mid-conversation message injection, and live emotion intensity bars + behavioral profile chips for both agents side by side.
 
-**💬 Chat.** Direct conversation with one fully configurable agent — set name, personality, persona backstory, reactivity, and pre-seed starting emotions. The **"Show live system prompt"** toggle is the key demo feature: it reveals exactly what the LLM is being instructed to *feel* on each turn (the "you **are** angry, not act angry" detail).
-
-<!-- Replace with screenshots: docs/screenshot-app.png, docs/screenshot-chat.png -->
-<div align="center">
-  <img src="docs/screenshot-chat.png" alt="Single-agent chat" width="720">
-</div>
+**Chat.** Direct conversation with one fully configurable agent — set name, personality, persona backstory, reactivity, and pre-seed starting emotions. The **"Show live system prompt"** toggle is the key demo feature: it reveals exactly what the LLM is being instructed to *feel* on each turn (the "you **are** angry, not act angry" detail).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -325,7 +312,7 @@ emotionist.ai/
 │   └── style.css           #   Styles
 ├── server.py               # FastAPI backend serving the web UI + JSON state API
 ├── main.py                 # CLI demo — no UI
-└── .env                    # GROQ_API_KEY goes here
+└── .env.example            # template — copy to .env and add your GROQ_API_KEY
 ```
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for full system design.
@@ -359,7 +346,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- MARKDOWN LINKS & IMAGES -->
 [Python-shield]: https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white
 [Python-url]: https://www.python.org/
-[FastAPI-shield]: https://img.shields.io/badge/FastAPI-0.136-009688?style=for-the-badge&logo=fastapi&logoColor=white
+[FastAPI-shield]: https://img.shields.io/badge/FastAPI-backend-009688?style=for-the-badge&logo=fastapi&logoColor=white
 [FastAPI-url]: https://fastapi.tiangolo.com/
 [Groq-shield]: https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge
 [Groq-url]: https://groq.com/

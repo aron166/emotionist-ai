@@ -1,3 +1,4 @@
+# Architecture
 
 ## What this project is
 
@@ -93,7 +94,7 @@ Witness mappings:
 - Sender received `good_news / achievement` → `HappyFor`, `Joy`
 - Sender received `compliment` → `HappyFor`
 
-`sender.last_event` is passed as `witness_event` in `EngineState.step()` in `server.py` (the two-agent flow). The single-agent chat (`ChatState.send()`) has no second agent — `witness_event` stays `None` there.
+`sender.last_event` is passed as `witness_event` in `Game.step()` in `server.py` (the two-agent flow). The single-agent chat (`ChatSession.send()`) has no second agent — `witness_event` stays `None` there.
 
 ### 5. `Agent.last_event` has two consumers
 
@@ -123,7 +124,7 @@ Anger, Gratification, Gratitude, Remorse are activated directly in `appraisal.py
 | `engine/appraisal.py` | `OCCAppraisalEngine` — OCC rules + witness empathy track in `compute_deltas(event, entity, witness_event)`. `REACTIVITY` dict (personality defaults). `apply_transitions()` for cascades. |
 | `engine/prompt_modifier.py` | `PromptModifier` — emotion state → first-person system prompt. Exports `BEHAVIORAL_PROFILES`, `NEUTRAL_PROFILE`, `weighted_params`, `describe_level` for UI use. |
 | `agents/agent.py` | `Agent` — full pipeline. `receive_and_respond(incoming_message, witness_event=None)`. Stores `last_event`. Constructor: `Agent(name, personality, base_persona, model, reactivity=None)`. |
-| `server.py` | FastAPI backend. `EngineState` (two-agent: `step()` passes `sender.last_event` as `witness_event`) + `ChatState` (single-agent). Serves `web/` and JSON state at `/api/state\|reset\|turn` and `/api/chat/state\|reset\|send`. |
+| `server.py` | FastAPI backend. `Game` (two-agent: `step()` passes `sender.last_event` as `witness_event`) + `ChatSession` (single-agent). Serves `web/` and JSON state at `/api/state\|reset\|turn` and `/api/chat/state\|reset\|send`. |
 | `web/` | Frontend (vanilla HTML/CSS/JS, no build): `index.html` Two-Agents view, `chat.html` single-agent Chat view, `app.js`/`chat.js` per-view logic, `common.js` shared render helpers, `style.css`. |
 | `main.py` | CLI demo — no UI, prints emotional state each turn |
 
@@ -157,14 +158,14 @@ FastAPI backend, hand-built vanilla HTML/CSS/JS frontend (no build step), served
 
 ## Ground-truth research data
 
-All numeric values originate from data objects in `.claude/Home.tsx`. Read that file before changing any constants.
+All numeric values originate from a research report on computational emotion modeling compiled during the design phase (not included in this repository). The relevant data objects map to code as follows:
 
-| Object | Used in |
+| Research data | Used in |
 |--------|---------|
-| `occ22Emotions` | Emotion subclasses, appraisal rules |
-| `behavioralProfiles` | `BEHAVIORAL_PROFILES` dict in `prompt_modifier.py` |
-| `emotionTransitions` | `_transition_rules()` in `appraisal.py` |
-| `intensityDecayData` | Anchor points in `_score_to_decay()` (0.05 / 0.12 / 0.22) |
+| OCC 22-emotion definitions | Emotion subclasses, appraisal rules |
+| Behavioral profiles per emotion | `BEHAVIORAL_PROFILES` dict in `prompt_modifier.py` |
+| Emotion transition probabilities | `TRANSITION_RULES` in `appraisal.py` |
+| Intensity decay curves | Anchor points in `_score_to_decay()` (0.05 / 0.12 / 0.22) |
 
 `DECAY_CATEGORY_MODIFIER` values are **not** from the research data — they are psychologically reasoned extensions. Do not treat them as ground truth; they are tunable.
 
