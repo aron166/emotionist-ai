@@ -82,7 +82,7 @@ The system implements the OCC (Ortony, Clore & Collins) appraisal model — the 
 | Layer | Technology |
 |-------|-----------|
 | Language | Python 3.13 |
-| LLM inference | Groq — `llama-3.3-70b-versatile` |
+| LLM inference | Pluggable — Groq (`llama-3.3-70b-versatile`, cloud) or Ollama (`qwen2.5:3b`, local/offline), selected via `LLM_PROVIDER` |
 | UI | **FastAPI** backend + hand-built **vanilla HTML / CSS / JS** frontend (no build step) |
 | Config | `python-dotenv` |
 | Tooling | `uv` (virtualenv + dependency management) |
@@ -204,7 +204,7 @@ Witness emotion mappings:
 
 - Python 3.13 (tested on Windows 11)
 - [`uv`](https://docs.astral.sh/uv/) — recommended for env + dependency management (plain `pip` works too)
-- A free Groq API key from [console.groq.com](https://console.groq.com)
+- An LLM backend — **either** a free Groq API key from [console.groq.com](https://console.groq.com) (cloud, default) **or** a local [Ollama](https://ollama.com) install for fully offline runs (`ollama pull qwen2.5:3b`)
 
 ### Installation
 
@@ -219,11 +219,12 @@ Witness emotion mappings:
    uv pip install -r requirements.txt
    ```
    <sub>Or with plain pip: `python -m venv .venv`, activate it (`.venv\Scripts\activate` on Windows), then `pip install -r requirements.txt`</sub>
-3. Configure your API key — copy the template and fill in your key:
+3. Configure the LLM backend — copy the template and edit `.env`:
    ```sh
    cp .env.example .env
-   # then edit .env: GROQ_API_KEY=your_key_here
    ```
+   - **Cloud (default):** set `LLM_PROVIDER=groq` and `GROQ_API_KEY=your_key_here`
+   - **Local / offline:** set `LLM_PROVIDER=ollama`, then `ollama pull qwen2.5:3b` and `ollama serve` (no API key needed)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -299,9 +300,12 @@ emotionist.ai/
 │   └── entity.py           # Entity — personality_score, _score_to_decay(),
 │                           #   DECAY_CATEGORY_MODIFIER, all ~30 emotions
 ├── engine/
-│   ├── evaluator.py        # AppraisalEvaluator — text → structured event (1 Groq call)
+│   ├── evaluator.py        # AppraisalEvaluator — text → structured event (1 LLM call)
 │   ├── appraisal.py        # OCCAppraisalEngine — OCC rules + witness track + REACTIVITY
 │   └── prompt_modifier.py  # PromptModifier — emotion state → system prompt
+├── llm/
+│   ├── providers.py        # LLMProvider ABC + GroqProvider + OllamaProvider
+│   └── __init__.py         #   get_provider() — picks backend from LLM_PROVIDER
 ├── agents/
 │   └── agent.py            # Agent — full pipeline, witness_event support, stores last_event
 ├── web/                    # Frontend — vanilla HTML/CSS/JS, no build step
@@ -312,7 +316,7 @@ emotionist.ai/
 │   └── style.css           #   Styles
 ├── server.py               # FastAPI backend serving the web UI + JSON state API
 ├── main.py                 # CLI demo — no UI
-└── .env.example            # template — copy to .env and add your GROQ_API_KEY
+└── .env.example            # template — copy to .env; set LLM_PROVIDER + backend config
 ```
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for full system design.

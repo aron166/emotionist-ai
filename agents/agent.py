@@ -1,9 +1,8 @@
-import os
-from groq import Groq
 from entity.entity import Entity
 from engine.evaluator import AppraisalEvaluator
 from engine.appraisal import OCCAppraisalEngine, REACTIVITY
 from engine.prompt_modifier import PromptModifier
+from llm import get_provider
 
 
 class Agent:
@@ -23,7 +22,7 @@ class Agent:
         self.evaluator = AppraisalEvaluator(model=model)
         self.appraisal_engine = OCCAppraisalEngine()
         self.prompt_modifier = PromptModifier()
-        self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+        self.provider = get_provider(model)
         self.conversation_history: list[dict] = []
         self.last_event: dict = {}
 
@@ -59,13 +58,11 @@ class Agent:
         self.conversation_history.append({"role": "user", "content": incoming_message})
 
         # 7. Call LLM to generate response
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "system", "content": system_prompt}] + self.conversation_history,
+        reply = self.provider.chat(
+            [{"role": "system", "content": system_prompt}] + self.conversation_history,
             temperature=0.8,
             max_tokens=256,
         )
-        reply = response.choices[0].message.content.strip()
 
         # 8. Add own reply to history
         self.conversation_history.append({"role": "assistant", "content": reply})
