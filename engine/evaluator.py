@@ -103,8 +103,10 @@ def _extract_json_object(raw: str) -> dict | None:
 
 
 class AppraisalEvaluator:
-    def __init__(self, model: str = "llama-3.3-70b-versatile"):
-        self.provider = get_provider(model)
+    def __init__(self, model: str = "llama-3.3-70b-versatile", provider: str | None = None):
+        # Appraisal follows the same backend as the reply, so "switch to local"
+        # keeps the whole pipeline offline (and parses Hungarian on the same model).
+        self.provider = get_provider(model, provider=provider)
 
     def evaluate(self, message: str) -> dict:
         """Convert raw message text into a structured appraisal event."""

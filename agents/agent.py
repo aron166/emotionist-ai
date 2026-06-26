@@ -13,16 +13,18 @@ class Agent:
         base_persona: str = "",
         model: str = "llama-3.3-70b-versatile",
         reactivity: float | None = None,
+        provider: str | None = None,
     ):
         self.name = name
         self.base_persona = base_persona
         self.model = model
+        self.provider_name = provider
         resolved_reactivity = reactivity if reactivity is not None else REACTIVITY.get(personality, 1.0)
         self.entity = Entity(name, personality, reactivity=resolved_reactivity)
-        self.evaluator = AppraisalEvaluator(model=model)
+        self.evaluator = AppraisalEvaluator(model=model, provider=provider)
         self.appraisal_engine = OCCAppraisalEngine()
         self.prompt_modifier = PromptModifier()
-        self.provider = get_provider(model)
+        self.provider = get_provider(model, provider=provider)
         self.conversation_history: list[dict] = []
         self.last_event: dict = {}
 

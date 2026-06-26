@@ -20,6 +20,7 @@ from agents.agent import Agent
 from engine.appraisal import REACTIVITY
 from engine.prompt_modifier import NEUTRAL_PROFILE, weighted_params, describe_level
 from entity.entity import _score_to_decay
+from llm import AVAILABLE_MODELS, default_model_id, provider_of
 
 load_dotenv()
 
@@ -193,10 +194,13 @@ class ChatSession:
                    "You are Morgan, a thoughtful person having a conversation.")
 
     def reset(self, name, personality, reactivity, persona,
-              seed_emotion=None, seed_intensity=0.0):
+              seed_emotion=None, seed_intensity=0.0, model_id=None):
         if personality not in PERSONALITIES:
             personality = "average"
-        self.agent = Agent(name or "Morgan", personality, persona or "", reactivity=reactivity)
+        self.model_id = model_id or default_model_id()
+        self.agent = Agent(name or "Morgan", personality, persona or "",
+                           model=self.model_id, provider=provider_of(self.model_id),
+                           reactivity=reactivity)
         self.messages: list[dict] = []
         if (seed_emotion and seed_emotion != "None"
                 and seed_emotion in self.agent.entity.emotions and seed_intensity > 0):
@@ -218,13 +222,19 @@ def chat_state() -> dict:
     s["persona"] = a.base_persona
     s["reactivity"] = round(a.entity.reactivity, 2)
     s["system_prompt"] = a.prompt_modifier.build_system_prompt(a.entity, a.base_persona)
+    has_key = bool(os.environ.get("GROQ_API_KEY"))
+    # A Groq model needs a key; local (Ollama) models are always offerable.
+    models = [{**m, "available": has_key if m["provider"] == "groq" else True}
+              for m in AVAILABLE_MODELS]
     return {
         "agent": s,
         "messages": CHAT.messages,
         "seed_options": SEED_EMOTIONS,
         "personalities": PERSONALITIES,
         "reactivity_ref": REACTIVITY,
-        "has_key": bool(os.environ.get("GROQ_API_KEY")),
+        "has_key": has_key,
+        "models": models,
+        "model_id": CHAT.model_id,
     }
 
 
@@ -235,6 +245,7 @@ class ChatResetReq(BaseModel):
     persona: str = "You are Morgan, a thoughtful person having a conversation."
     seed_emotion: str | None = None
     seed_intensity: float = 0.0
+    model_id: str | None = None
 
 
 class ChatSendReq(BaseModel):
@@ -249,14 +260,16 @@ def chat_get_state():
 @app.post("/api/chat/reset")
 def chat_reset(req: ChatResetReq):
     CHAT.reset(req.name, req.personality, req.reactivity, req.persona,
-               req.seed_emotion, req.seed_intensity)
+               req.seed_emotion, req.seed_intensity, req.model_id)
     return chat_state()
 
 
 @app.post("/api/chat/send")
 def chat_send(req: ChatSendReq):
-    if not os.environ.get("GROQ_API_KEY"):
-        return {"error": "GROQ_API_KEY not set in .env"}
+    # Only Groq models need a key; local (Ollama) models run offline.
+    if provider_of(CHAT.model_id) == "groq" and not os.environ.get("GROQ_API_KEY"):
+        return {"error": "GROQ_API_KEY not set in .env — required for Groq models. "
+                         "Pick a local model to run offline."}
     if req.message.strip():
         CHAT.send(req.message.strip())
     return chat_state()

@@ -82,13 +82,53 @@ class OllamaProvider(LLMProvider):
         return data["message"]["content"].strip()
 
 
-def get_provider(model: str | None = None) -> LLMProvider:
-    """Build the provider selected by the LLM_PROVIDER env var (default: groq).
+# Curated models the Chat UI lets the user switch between at runtime (#45).
+# `id` doubles as the underlying model name for both backends, so the UI can
+# send one string and we resolve the provider from this table. `note` is the
+# caveat shown to the user (cloud cost vs offline Hungarian quality).
+AVAILABLE_MODELS = [
+    {"id": "llama-3.3-70b-versatile", "provider": "groq",
+     "label": "Groq · Llama 3.3 70B", "note": "Cloud · strongest Hungarian"},
+    {"id": "llama-3.1-8b-instant", "provider": "groq",
+     "label": "Groq · Llama 3.1 8B", "note": "Cloud · fast, lighter"},
+    {"id": "qwen2.5:3b", "provider": "ollama",
+     "label": "Ollama · Qwen2.5 3B", "note": "Local/offline · weak Hungarian"},
+]
+_MODELS_BY_ID = {m["id"]: m for m in AVAILABLE_MODELS}
 
-    `model` only applies to Groq (where callers pass an explicit model); Ollama
-    reads its model from OLLAMA_MODEL so the two never get crossed.
+
+def default_model_id() -> str:
+    """The model selected on startup, honoring the LLM_PROVIDER env default."""
+    if os.environ.get("LLM_PROVIDER", "groq").strip().lower() == "ollama":
+        return DEFAULT_OLLAMA_MODEL
+    return DEFAULT_GROQ_MODEL
+
+
+def provider_of(model_id: str) -> str:
+    """Which backend a curated model_id belongs to (falls back to env default)."""
+    spec = _MODELS_BY_ID.get(model_id)
+    if spec:
+        return spec["provider"]
+    return os.environ.get("LLM_PROVIDER", "groq").strip().lower()
+
+
+def get_provider(model: str | None = None, provider: str | None = None) -> LLMProvider:
+    """Build an LLM provider.
+
+    `provider` selects the backend explicitly ("groq" / "ollama"); when omitted
+    it falls back to the LLM_PROVIDER env var (default: groq). `model` is the
+    backend-specific model name — passed to whichever provider is built, so the
+    UI can switch both backend and model in one call (#45).
     """
-    name = os.environ.get("LLM_PROVIDER", "groq").strip().lower()
+    name = (provider or os.environ.get("LLM_PROVIDER", "groq")).strip().lower()
     if name == "ollama":
-        return OllamaProvider()
+        return OllamaProvider(model=model)
     return GroqProvider(model=model)
+
+
+def get_provider_for_model(model_id: str) -> LLMProvider:
+    """Resolve a curated model_id to a ready provider (backend + model)."""
+    spec = _MODELS_BY_ID.get(model_id)
+    if spec is None:
+        return get_provider()
+    return get_provider(model=model_id, provider=spec["provider"])
