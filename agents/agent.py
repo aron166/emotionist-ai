@@ -28,7 +28,8 @@ class Agent:
         self.conversation_history: list[dict] = []
         self.last_event: dict = {}
 
-    def receive_and_respond(self, incoming_message: str, witness_event: dict | None = None) -> str:
+    def receive_and_respond(self, incoming_message: str, witness_event: dict | None = None,
+                            retrieved_context: str = "") -> str:
         """
         Full pipeline: appraise incoming message → update emotional state →
         build emotionally-modulated prompt → generate response.
@@ -36,6 +37,9 @@ class Agent:
         witness_event: the appraisal event the *sender* experienced on the
         previous turn — used to generate empathic emotion deltas independently
         of the surface language of their message.
+
+        retrieved_context: budget-trimmed RAG context (engine/memory.py) spliced
+        into the system prompt; empty string disables it.
         """
         # 1. Appraise incoming message
         event = self.evaluator.evaluate(incoming_message)
@@ -53,7 +57,7 @@ class Agent:
 
         # 5. Build system prompt from emotional state
         system_prompt = self.prompt_modifier.build_system_prompt(
-            self.entity, self.base_persona
+            self.entity, self.base_persona, retrieved_context
         )
 
         # 6. Update conversation history

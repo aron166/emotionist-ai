@@ -11,10 +11,8 @@ The theoretical backbone is the **OCC (Ortony, Clore & Collins) appraisal model*
 ## Running the project
 
 ```bash
-pip install -r requirements.txt        # groq, python-dotenv, fastapi, uvicorn
-cp .env.example .env                   # add GROQ_API_KEY
-python server.py                       # FastAPI web UI → http://127.0.0.1:8000
-python main.py                         # CLI two-agent loop (no UI)
+./run.sh                               # builds the React UI + starts the server
+# → http://127.0.0.1:8000
 ```
 
 `server.py` serves the `web/` frontend and a JSON state API; open http://127.0.0.1:8000.
@@ -94,7 +92,7 @@ Witness mappings:
 - Sender received `good_news / achievement` → `HappyFor`, `Joy`
 - Sender received `compliment` → `HappyFor`
 
-`sender.last_event` is passed as `witness_event` in `Game.step()` in `server.py` (the two-agent flow). The single-agent chat (`ChatSession.send()`) has no second agent — `witness_event` stays `None` there.
+**Status:** the witness track is an engine capability that's currently **dormant** — the product is now a single practice-partner agent (`ChatSession.send()`), so there's no second agent to witness and `witness_event` stays `None`. The code path remains in `compute_deltas()` for when a multi-agent mode returns.
 
 ### 5. `Agent.last_event` has two consumers
 
@@ -110,6 +108,22 @@ Populated after every `receive_and_respond()` call. Do not remove:
 
 Anger, Gratification, Gratitude, Remorse are activated directly in `appraisal.py` when both component conditions fire simultaneously. They are not derived from simpler emotions at runtime.
 
+### 8. Scenario personas (`agents/personas.py`)
+
+A `ScenarioPersona` is a *recipe for a whole `Agent`* — the counterpart you practice against (angry customer, fraud victim, defensive employee…). It's pure data: `id, display_name, role, situation, category, personality_score, reactivity, base_persona, seed_emotions`. `ChatSession.reset(scenario_id=...)` builds an `Agent` from the preset, applies `seed_emotions`, and runs the normal pipeline. `personality_score` maps to one of the three engine preset labels (the engine still builds an Entity from a label, not an arbitrary float — that's the pending dynamic-personality work). Presets are written in Hungarian for the OTP demo.
+
+### 9. RAG / session memory (`engine/memory.py`)
+
+Each `ChatSession` owns a `SessionMemory`. Per turn, **before** generating, it retrieves the top-k most relevant prior turns for the incoming message and splices them into the system prompt (a budget-trimmed `## Relevant things from earlier` block added by `PromptModifier.build_system_prompt(..., retrieved_context=...)`); after the reply, both the user message and the reply are stored.
+
+- **Store:** in-memory list scoped to the session. Single-user local demo, so per-process state already "survives across requests in a session" — no SQLite.
+- **Embeddings:** Ollama `nomic-embed-text` over stdlib `urllib` (no new dependency, no key, offline). Cosine in pure Python.
+- **Fallback:** if embeddings are unavailable, retrieval degrades to token-overlap scoring so the demo never breaks. The active backend (`embeddings` / `keyword`) is surfaced in the UI.
+
+### 10. Runtime model/provider switching
+
+`llm/providers.py` exposes a curated `AVAILABLE_MODELS` registry (Groq 70B / Groq 8B / Ollama qwen2.5:3b). The Chat UI sends a `model_id`; `provider_of()` resolves the backend and `get_provider(model, provider)` builds it. Groq models need a key (the API exposes a per-model `available` flag, never the key itself); local models always run. LLM failures are caught at the API boundary and returned as a friendly `{"error": ...}` (never a 500).
+
 ---
 
 ## Module map
@@ -124,19 +138,23 @@ Anger, Gratification, Gratitude, Remorse are activated directly in `appraisal.py
 | `engine/appraisal.py` | `OCCAppraisalEngine` — OCC rules + witness empathy track in `compute_deltas(event, entity, witness_event)`. `REACTIVITY` dict (personality defaults). `apply_transitions()` for cascades. |
 | `engine/prompt_modifier.py` | `PromptModifier` — emotion state → first-person system prompt. Exports `BEHAVIORAL_PROFILES`, `NEUTRAL_PROFILE`, `weighted_params`, `describe_level` for UI use. |
 | `agents/agent.py` | `Agent` — full pipeline. `receive_and_respond(incoming_message, witness_event=None)`. Stores `last_event`. Constructor: `Agent(name, personality, base_persona, model, reactivity=None)`. |
-| `server.py` | FastAPI backend. `Game` (two-agent: `step()` passes `sender.last_event` as `witness_event`) + `ChatSession` (single-agent). Serves `web/` and JSON state at `/api/state\|reset\|turn` and `/api/chat/state\|reset\|send`. |
+| `server.py` | FastAPI backend. `ChatSession` (the single practice-partner agent + `SessionMemory`). Serves the React build / `web/` fallback and JSON state at `/api/chat/state\|reset\|send`. Per-IP rate guard + friendly LLM-error handling. |
 | `web/` | Frontend (vanilla HTML/CSS/JS, no build): `index.html` Two-Agents view, `chat.html` single-agent Chat view, `app.js`/`chat.js` per-view logic, `common.js` shared render helpers, `style.css`. |
-| `main.py` | CLI demo — no UI, prints emotional state each turn |
 
 ---
 
-## Web UI — two views (`server.py` + `web/`)
+## Web UI — single view (`server.py` + `frontend/`)
 
-FastAPI backend, hand-built vanilla HTML/CSS/JS frontend (no build step), served at http://127.0.0.1:8000.
+The frontend is a **React + Vite SPA** (`frontend/`) that builds to `web-dist/`. FastAPI
+is purely the JSON API; `server.py` serves the React build when present and **falls back
+to the legacy vanilla `web/` UI** if `web-dist/` is missing (e.g. Node not installed).
+Served at http://127.0.0.1:8000. The React app reuses the original `style.css` design
+system plus `polish.css` (motion) and `theme.css` (the premium elevation layer).
 
-1. **Two Agents** (`index.html`) — Alex (neurotic) vs Sam (resilient). Preset starters, Next Turn / Run 6 Turns, mid-conversation injection, side-by-side emotion bars + behavioral profile chips.
-
-2. **Chat** (`chat.html`) — Single-agent chat. Configure name, personality, reactivity, persona, pre-seed emotions. Live emotion bars, decay rate, reactivity multiplier, and a **"Show live system prompt"** toggle.
+**Chat — the practice partner** (`views/Chat.jsx`): selectable scenario cards + live
+model switcher, custom-agent config, emotion bars, decay/reactivity, the **"Show live
+system prompt"** toggle, and a **Retrieved Context (RAG)** panel. (An earlier two-agent
+view was removed; the engine's witness/empathy track is retained but dormant.)
 
 ---
 

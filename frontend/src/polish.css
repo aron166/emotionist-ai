@@ -1,0 +1,34 @@
+/* React-port polish — additive refinements over the existing design system.
+   Preserves the dark/violet identity; just adds spring motion + softer depth. */
+
+:root { --ease-spring: cubic-bezier(0.32, 0.72, 0, 1); }
+
+/* Emotion bars grow with mass instead of snapping. */
+.bar-fill { transition: width 0.7s var(--ease-spring), background 0.3s ease; }
+
+/* Buttons get a physical press + spring. */
+.btn { transition: border-color 0.3s var(--ease-spring), background 0.3s var(--ease-spring),
+                   transform 0.25s var(--ease-spring), box-shadow 0.3s var(--ease-spring); }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+
+/* Inputs/selects: violet focus ring, no harsh default outline. */
+.field input, .field select, .field textarea, .seed-row select, .inject input, #topic {
+  transition: border-color 0.25s var(--ease-spring), box-shadow 0.25s var(--ease-spring);
+}
+.field input:focus, .field select:focus, .field textarea:focus,
+.seed-row select:focus, .inject input:focus, #topic:focus {
+  outline: none; border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.18);
+}
+
+/* Messages and RAG rows fade up on mount. */
+@keyframes msg-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.msg, .rag-row { animation: msg-in 0.45s var(--ease-spring) both; }
+
+/* Panels lift subtly on hover — depth without heavy shadows. */
+.panel { transition: border-color 0.4s var(--ease-spring), transform 0.4s var(--ease-spring); }
+.panel:hover { transform: translateY(-2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-fill, .btn, .msg, .rag-row, .panel { transition: none; animation: none; }
+}

@@ -17,7 +17,7 @@
   <h1 align="center">Emotionist.ai</h1>
 
   <p align="center">
-    AI agents that feel — built on OCC appraisal theory, powered by Groq.
+    A difficult-conversation practice partner whose emotions are real — built on OCC appraisal theory, runs on Groq or a local model.
     <br />
     <a href="ARCHITECTURE.md"><strong>Explore the architecture »</strong></a>
     <br />
@@ -71,6 +71,16 @@ The system implements the OCC (Ortony, Clore & Collins) appraisal model — the 
 
 **Why this matters:** existing emotional-agent demos hardcode mood as a flag ("be sad now"). This is structurally different. Emotion state is the output of an appraisal pipeline, decays at psychologically grounded rates per emotion type, and *shapes* the LLM's first-person system prompt every turn. The agent isn't told to act angry. It's told it *is* angry — viscerally, right now — and responds in character.
 
+### The product: a difficult-conversation practice partner
+
+That persistent, reactive emotion is exactly what makes a believable **person to practice against**. Emotionist.ai ships as a **difficult-conversation simulator**: you rehearse a hard conversation and the agent is the emotionally-reactive counterpart whose mood persists until you handle it well. An angry customer stays angry for several turns; say the right thing and they soften.
+
+Built-in scenarios (Hungarian, for a bank frontline-training demo): **Dühös ügyfél** (angry customer, card wrongly blocked), **Csalás áldozata** (panicked fraud victim), **Védekező munkatárs** (defensive employee in a review), **Elutasított hiteligénylő** (calm-but-stubborn rejected loan applicant). Add your own in [`agents/personas.py`](agents/personas.py) — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+<div align="center">
+  <img src="web/screenshot.png" alt="Emotionist.ai — practice-partner chat UI with scenario cards, live emotion bars, and retrieved-context panel" width="100%" />
+</div>
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Built With
@@ -81,11 +91,13 @@ The system implements the OCC (Ortony, Clore & Collins) appraisal model — the 
 
 | Layer | Technology |
 |-------|-----------|
-| Language | Python 3.13 |
-| LLM inference | Pluggable — Groq (`llama-3.3-70b-versatile`, cloud) or Ollama (`qwen2.5:3b`, local/offline), selected via `LLM_PROVIDER` |
-| UI | **FastAPI** backend + hand-built **vanilla HTML / CSS / JS** frontend (no build step) |
+| Language | Python 3.10+ |
+| LLM inference | Pluggable — Groq (`llama-3.3-70b-versatile`, cloud) or Ollama (`qwen2.5:3b`, local/offline), switchable live in the UI |
+| RAG | In-process session memory; Ollama `nomic-embed-text` embeddings (stdlib `urllib`) with a keyword fallback |
+| Frontend | **React + Vite** SPA (`frontend/`), served by FastAPI from the build. Legacy vanilla HTML/CSS/JS (`web/`) kept as an automatic fallback |
+| API | **FastAPI** — JSON state API; UI-agnostic |
 | Config | `python-dotenv` |
-| Tooling | `uv` (virtualenv + dependency management) |
+| Tooling | `uv`/`pip` (Python), `npm` (frontend build) |
 
 The emotion engine is **pure Python and UI-agnostic** — `server.py` (FastAPI) is a thin presentation layer over the `agents` / `engine` / `entity` core.
 
@@ -181,6 +193,8 @@ This is a theoretical contribution beyond the OCC model. OCC defines what emotio
 
 ## Empathic / Witness Emotions
 
+> **Note:** this is an engine capability that is **currently dormant**. The shipped product is a single practice-partner agent, so there is no second agent to witness — the code path remains in `compute_deltas()` for when a multi-agent mode returns. It's documented here because it's a core part of the engine's design.
+
 **The problem this solves:** The appraisal evaluator reads the surface language of incoming messages. If an agent delivers bad news and the recipient responds calmly ("I see, thank you for telling me"), the evaluator tags the response as `neutral` — and the deliverer gets no emotional delta, even though they just watched someone absorb painful news. The evaluator was reading *what was said*, not *what was witnessed*.
 
 **The fix:** A second independent **witness track** inside the appraisal engine. Every turn, the responder receives not just the incoming message text but also the sender's `last_event` — the structured appraisal of what the sender experienced on the *previous* turn. These produce separate emotion deltas that merge with the primary track. No extra LLM call needed; `last_event` is already computed.
@@ -202,29 +216,38 @@ Witness emotion mappings:
 
 ### Prerequisites
 
-- Python 3.13 (tested on Windows 11)
-- [`uv`](https://docs.astral.sh/uv/) — recommended for env + dependency management (plain `pip` works too)
+- Python 3.10+ (developed on Linux; `run.sh` for Linux/macOS, `run.bat` for Windows)
+- [Node.js](https://nodejs.org) 18+ — to build the React frontend. *Optional:* without it the server serves the vanilla `web/` UI instead.
 - An LLM backend — **either** a free Groq API key from [console.groq.com](https://console.groq.com) (cloud, default) **or** a local [Ollama](https://ollama.com) install for fully offline runs (`ollama pull qwen2.5:3b`)
 
 ### Installation
 
-1. Clone the repo
-   ```sh
-   git clone https://github.com/aron166/emotionist.ai.git
-   cd emotionist.ai
-   ```
-2. Create the environment and install dependencies
-   ```sh
-   uv venv
-   uv pip install -r requirements.txt
-   ```
-   <sub>Or with plain pip: `python -m venv .venv`, activate it (`.venv\Scripts\activate` on Windows), then `pip install -r requirements.txt`</sub>
-3. Configure the LLM backend — copy the template and edit `.env`:
-   ```sh
-   cp .env.example .env
-   ```
-   - **Cloud (default):** set `LLM_PROVIDER=groq` and `GROQ_API_KEY=your_key_here`
-   - **Local / offline:** set `LLM_PROVIDER=ollama`, then `ollama pull qwen2.5:3b` and `ollama serve` (no API key needed)
+**One command (recommended):**
+
+```sh
+git clone https://github.com/aron166/emotionist.ai.git
+cd emotionist.ai
+./run.sh            # Linux/macOS — creates .venv, installs deps, starts the app
+                    # Windows: run.bat
+```
+
+`run.sh` creates the venv, installs dependencies, copies `.env.example` → `.env` if missing, runs preflight checks (Python version, port free, provider configured), optionally pulls the Ollama model, and starts the server at **http://127.0.0.1:8000**. Set `PORT=8001 ./run.sh` if 8000 is busy.
+
+Then edit `.env` to pick a backend:
+- **Cloud (default):** `LLM_PROVIDER=groq` and a free `GROQ_API_KEY` from [console.groq.com](https://console.groq.com)
+- **Local / offline:** `LLM_PROVIDER=ollama`, then `ollama pull qwen2.5:3b` and `ollama serve` (no key)
+
+You can also switch model/backend live in the Chat UI — `.env` only sets the startup default.
+
+<details><summary>Manual setup (no run script)</summary>
+
+```sh
+python -m venv .venv && source .venv/bin/activate   # .venv\Scripts\activate on Windows
+pip install -r requirements.txt
+cp .env.example .env                                 # then edit it
+python server.py
+```
+</details>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -232,29 +255,28 @@ Witness emotion mappings:
 ## Usage
 
 ```bash
-# Flagship web UI — FastAPI + custom frontend (recommended)
-uv run python server.py
+# One command — builds the React UI and starts the server
+./run.sh        # run.bat on Windows
 # → open http://127.0.0.1:8000
-
-# CLI demo — no UI, prints emotional state each turn
-uv run python main.py
 ```
 
-> Not using `uv`? Activate your venv first, then run `python server.py` / `python main.py`.
+> **Frontend:** `./run.sh` builds the React app (`frontend/`) and FastAPI serves it. For
+> hot-reload development: `cd frontend && npm run dev` (Vite on :5173, proxies the API to
+> :8000). If Node isn't installed, the server automatically serves the legacy `web/` UI.
 
-### Flagship UI — the custom frontend (`server.py` + `web/`)
+### The UI — practice partner (`server.py` + `frontend/`)
 
-A hand-built dark interface (FastAPI backend, vanilla HTML/CSS/JS — **no build step**) served at **http://127.0.0.1:8000**. Two views via the top nav:
+A dark, premium React interface served at **http://127.0.0.1:8000**.
 
-**Two Agents.** Alex (neurotic) vs Sam (resilient) in a live two-agent conversation. Preset conversation starters, **Next Turn** / **Run 6 Turns** controls, mid-conversation message injection, and live emotion intensity bars + behavioral profile chips for both agents side by side.
+**Chat (the practice partner).** Pick a **practice scenario** (a selectable card for the counterpart you rehearse against) and an **LLM model**, then have the conversation. Or build a custom agent — name, personality, persona, reactivity, pre-seeded emotions. Live panels show the counterpart's emotion bars, behavioral profile, the **"Show live system prompt"** toggle (reveals what the LLM is told to *feel* — "you **are** angry, not act angry"), and a **Retrieved Context (RAG)** panel showing which earlier turns were pulled into the prompt.
 
-**Chat.** Direct conversation with one fully configurable agent — set name, personality, persona backstory, reactivity, and pre-seed starting emotions. The **"Show live system prompt"** toggle is the key demo feature: it reveals exactly what the LLM is being instructed to *feel* on each turn (the "you **are** angry, not act angry" detail).
+The **model switcher** matters for the demo: Groq `llama-3.3-70b` produces strong Hungarian; local `qwen2.5:3b` runs offline/free but with weaker Hungarian. Switch live to show the trade-off.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Observed Emergent Behavior
 
-During testing, a two-agent workplace conflict scenario produced behavior that was **not explicitly programmed**:
+During development, an earlier two-agent harness (since retired in favor of the single practice-partner product) produced behavior that was **not explicitly programmed** — evidence the engine's dynamics are emergent, not scripted:
 
 - **Spontaneous escalation loop** — both agents entered self-reinforcing blame cycles driven by `Shame → Anger → Counter-reproach` cascades
 - **Personality-differentiated reconciliation** — after an apology injection, the neurotic agent (Alex) accepted immediately while the resilient agent (Sam) partially pushed back before conceding — exactly matching the decay differential between their `Pride` and `Distress` states at that moment
@@ -302,20 +324,24 @@ emotionist.ai/
 ├── engine/
 │   ├── evaluator.py        # AppraisalEvaluator — text → structured event (1 LLM call)
 │   ├── appraisal.py        # OCCAppraisalEngine — OCC rules + witness track + REACTIVITY
-│   └── prompt_modifier.py  # PromptModifier — emotion state → system prompt
+│   ├── memory.py           # SessionMemory — RAG: store + retrieve past turns (#22)
+│   └── prompt_modifier.py  # PromptModifier — emotion state (+ RAG context) → system prompt
 ├── llm/
-│   ├── providers.py        # LLMProvider ABC + GroqProvider + OllamaProvider
+│   ├── providers.py        # LLMProvider ABC + GroqProvider + OllamaProvider + model registry
 │   └── __init__.py         #   get_provider() — picks backend from LLM_PROVIDER
 ├── agents/
-│   └── agent.py            # Agent — full pipeline, witness_event support, stores last_event
-├── web/                    # Frontend — vanilla HTML/CSS/JS, no build step
-│   ├── index.html          #   Two Agents view (Alex vs Sam)
-│   ├── chat.html           #   Single-agent Chat view (live system-prompt toggle)
-│   ├── app.js / chat.js    #   Per-view logic
+│   ├── agent.py            # Agent — full pipeline, witness_event support, stores last_event
+│   └── personas.py         # ScenarioPersona presets — the counterparts you practice against
+├── run.sh / run.bat        # One-command setup + start (Linux/macOS / Windows)
+├── tunnel.sh               # Expose the app via a cloudflared quick-tunnel
+├── RUNBOOK.md              # Go-live checklist for the live demo
+├── frontend/               # React + Vite SPA (primary UI) → builds to web-dist/
+│   └── src/                #   App.jsx, views/Chat.jsx, components/, styles + theme
+├── web/                    # Legacy vanilla Chat UI (automatic fallback if no Node)
+│   ├── chat.html / chat.js #   Single-view chat
 │   ├── common.js           #   Shared render helpers
 │   └── style.css           #   Styles
-├── server.py               # FastAPI backend serving the web UI + JSON state API
-├── main.py                 # CLI demo — no UI
+├── server.py               # FastAPI backend — practice-partner API + serves the UI
 └── .env.example            # template — copy to .env; set LLM_PROVIDER + backend config
 ```
 
@@ -348,7 +374,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[Python-shield]: https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white
+[Python-shield]: https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white
 [Python-url]: https://www.python.org/
 [FastAPI-shield]: https://img.shields.io/badge/FastAPI-backend-009688?style=for-the-badge&logo=fastapi&logoColor=white
 [FastAPI-url]: https://fastapi.tiangolo.com/
