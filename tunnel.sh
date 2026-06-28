@@ -9,7 +9,7 @@ command -v cloudflared >/dev/null || {
   exit 1
 }
 
-curl -fsS "http://127.0.0.1:$PORT/api/state" >/dev/null 2>&1 || {
+curl -fsS "http://127.0.0.1:$PORT/api/chat/state" >/dev/null 2>&1 || {
   echo "✗ App not responding on http://127.0.0.1:$PORT — start it first: ./run.sh" >&2
   exit 1
 }
