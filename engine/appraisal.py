@@ -38,6 +38,29 @@ REACTIVITY = {
 class OCCAppraisalEngine:
     """Maps structured appraisal events to emotion intensity deltas using OCC rules."""
 
+    # ── De-escalation / damping (flaw fix: emotions too sticky, no fast recovery) ──
+    # Reassuring input actively *soothes* active negative emotions instead of only
+    # adding positive ones and waiting for slow decay. Kept partial + capped so it's
+    # earned: one nice line after something horrible won't erase real anger, and a
+    # fresh hostile message still spikes normally.
+    DAMPEN_EVENTS = {"compliment", "good_news", "agreement", "achievement", "praise_of_other"}
+    SOOTHE_TARGETS = ("Anger", "Distress", "Fear", "Reproach", "Resentment",
+                      "Shame", "Hate", "Disgust", "Contempt")
+    DAMP_SCALE = 0.45        # how much a full-severity reassurance soothes
+    MAX_SOOTHE_FRAC = 0.5    # never cut a given emotion by more than half in one turn
+
+    def _apply_damping(self, et: str, sev: float, entity: Entity, deltas: dict) -> None:
+        """Subtract a bounded amount from active negative emotions on reassuring input.
+        Inverse-scaled by reactivity: neurotic agents calm slower, resilient faster."""
+        if et not in self.DAMPEN_EVENTS:
+            return
+        soothe = (sev * self.DAMP_SCALE) / max(0.6, entity.reactivity)
+        for name in self.SOOTHE_TARGETS:
+            emo = entity.emotions.get(name)
+            if emo and emo.is_active:
+                reduction = min(emo.intensity * self.MAX_SOOTHE_FRAC, soothe)
+                deltas[name] = deltas.get(name, 0.0) - reduction
+
     def compute_deltas(
         self, event: dict, entity: Entity, witness_event: dict | None = None
     ) -> dict[str, float]:
@@ -193,7 +216,11 @@ class OCCAppraisalEngine:
             elif w_self and wet == "compliment":
                 deltas["HappyFor"] = deltas.get("HappyFor", 0) + ws * 0.6
 
-        return {name: delta * entity.reactivity for name, delta in deltas.items()}
+        scaled = {name: delta * entity.reactivity for name, delta in deltas.items()}
+        # Damping is computed on real current intensities, so apply it *after* the
+        # reactivity scaling (and with its own inverse-reactivity weighting).
+        self._apply_damping(et, sev, entity, scaled)
+        return scaled
 
     def apply_transitions(self, entity: Entity):
         """Check and probabilistically fire emotion transitions."""
@@ -204,3 +231,26 @@ class OCCAppraisalEngine:
                 continue
             if condition_fn(source) and random.random() < prob:
                 target.activate(source.intensity * TRANSITION_CARRY)
+
+
+if __name__ == "__main__":
+    # ponytail: self-check — de-escalation is real, partial, and not manipulable.
+    eng = OCCAppraisalEngine()
+    ent = Entity("Test", "average")
+    insult = {"event_type": "insult", "severity": 0.85, "directed_at_self": True, "intentional": True}
+    reassure = {"event_type": "agreement", "severity": 0.8, "directed_at_self": True, "intentional": False}
+
+    ent.apply_deltas(eng.compute_deltas(insult, ent))
+    spiked = ent.emotions["Anger"].intensity
+    assert spiked > 0.4, f"insult should spike anger, got {spiked}"
+
+    ent.apply_deltas(eng.compute_deltas(reassure, ent))
+    soothed = ent.emotions["Anger"].intensity
+    assert soothed < spiked, "reassurance should reduce anger"
+    assert soothed > 0.05, f"one nice line must NOT erase real anger, got {soothed}"
+
+    ent.apply_deltas(eng.compute_deltas(insult, ent))
+    assert ent.emotions["Anger"].intensity > soothed, "a fresh insult must re-spike anger"
+
+    print(f"OK — anger spiked {spiked:.2f} → soothed {soothed:.2f} → re-spiked "
+          f"{ent.emotions['Anger'].intensity:.2f} (earned calm, still reactive)")

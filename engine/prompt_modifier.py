@@ -269,7 +269,7 @@ class PromptModifier:
 
         # ── Visceral emotional experience ──────────────────────────────────────
         experience_lines = []
-        for name, intensity in dominant[:3]:  # top 3 emotions narrated
+        for name, intensity in dominant[:2]:  # top 2 narrated — keep emotion from drowning the task
             if intensity >= 0.15 and name in EMOTION_EXPERIENCES:
                 # Scale the description intro by intensity
                 if intensity >= 0.7:
@@ -301,9 +301,12 @@ class PromptModifier:
             "that you are an AI. Stay fully in character even if the other person is "
             "confusing, rude, or unhelpful.\n\n"
             "## Your response\n\n"
-            "Respond in character. Let your emotional state shape your word choice, sentence length, "
-            "and tone — don't describe or explain your emotions, just *be* them. "
-            "Keep it to 2–4 sentences. Sound like a real person, not an AI assistant."
+            "Respond in character. Let your emotional state shape your tone and word choice — "
+            "don't describe or explain your emotions, just *be* them. "
+            "Engage directly with what the other person just said: react to their specific point or "
+            "offer, say what you concretely want or need, and move the situation forward — don't just "
+            "vent or circle the same feeling. Keep it to 2–4 sentences. Sound like a real person, "
+            "not an AI assistant."
         )
 
         # ── Language directive (last = most salient) ───────────────────────────
