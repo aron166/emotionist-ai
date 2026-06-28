@@ -252,12 +252,20 @@ def _tone_instruction(params: dict[str, float]) -> str:
 
 
 class PromptModifier:
-    def build_system_prompt(self, entity: Entity, base_persona: str = "") -> str:
+    def build_system_prompt(self, entity: Entity, base_persona: str = "",
+                            retrieved_context: str = "") -> str:
         dominant = entity.get_dominant_emotions(n=5)
         params = weighted_params(dominant)
 
         # ── Persona block ──────────────────────────────────────────────────────
         persona_block = f"{base_persona}\n\n" if base_persona else ""
+
+        # ── Retrieved context (RAG, #26) ───────────────────────────────────────
+        # Spliced in already budget-trimmed by the caller (engine/memory.py).
+        context_block = (
+            "## Relevant things from earlier in this conversation\n\n"
+            + retrieved_context + "\n\n"
+        ) if retrieved_context.strip() else ""
 
         # ── Visceral emotional experience ──────────────────────────────────────
         experience_lines = []
@@ -291,4 +299,4 @@ class PromptModifier:
             "Keep it to 2–4 sentences. Sound like a real person, not an AI assistant."
         )
 
-        return persona_block + emotion_block + behaviour_block + output_instruction
+        return persona_block + context_block + emotion_block + behaviour_block + output_instruction

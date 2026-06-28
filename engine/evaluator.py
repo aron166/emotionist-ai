@@ -1,6 +1,7 @@
 import json
-import os
-from groq import Groq
+import re
+
+from llm import get_provider
 
 
 SYSTEM_PROMPT = """You are an emotion appraisal parser for a two-agent conversation system.
@@ -71,33 +72,54 @@ FALLBACK_EVENT = {
 }
 
 
+def _extract_json_object(raw: str) -> dict | None:
+    """Pull a JSON object out of an LLM reply.
+
+    Big models return clean JSON; small local models often wrap it in code
+    fences or chatter ("Sure! Here you go: {...}"). We try, in order: the whole
+    string, the string minus a ```json fence, then the first {...} block we can
+    find. Returns the parsed dict, or None if nothing parses.
+    """
+    raw = raw.strip()
+
+    candidates = [raw]
+    if raw.startswith("```"):
+        inner = raw.split("```")[1]
+        if inner.startswith("json"):
+            inner = inner[4:]
+        candidates.append(inner.strip())
+    match = re.search(r"\{.*\}", raw, re.DOTALL)
+    if match:
+        candidates.append(match.group(0))
+
+    for candidate in candidates:
+        try:
+            parsed = json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(parsed, dict):
+            return parsed
+    return None
+
+
 class AppraisalEvaluator:
-    def __init__(self, model: str = "llama-3.3-70b-versatile"):
-        self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-        self.model = model
+    def __init__(self, model: str = "llama-3.3-70b-versatile", provider: str | None = None):
+        # Appraisal follows the same backend as the reply, so "switch to local"
+        # keeps the whole pipeline offline (and parses Hungarian on the same model).
+        self.provider = get_provider(model, provider=provider)
 
     def evaluate(self, message: str) -> dict:
         """Convert raw message text into a structured appraisal event."""
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
+        raw = self.provider.chat(
+            [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": message},
             ],
             temperature=0.1,
             max_tokens=128,
         )
-        raw = response.choices[0].message.content.strip()
-        # Strip markdown code fences if present
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        try:
-            event = json.loads(raw)
-        except json.JSONDecodeError:
-            return dict(FALLBACK_EVENT)
-        if not isinstance(event, dict):
+        event = _extract_json_object(raw)
+        if event is None:
             return dict(FALLBACK_EVENT)
         # Fill any missing fields and keep severity in the expected range.
         event = {**FALLBACK_EVENT, **event}

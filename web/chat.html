@@ -18,12 +18,8 @@
     <div class="topbar-row">
       <div>
         <div class="brand">EMOTIONIST<span class="dot">.AI</span></div>
-        <div class="brand-sub">Single Agent — Talk To It Directly</div>
+        <div class="brand-sub">Practice Partner — Rehearse A Hard Conversation</div>
       </div>
-      <nav class="nav">
-        <a href="/" class="nav-link">Two Agents</a>
-        <a href="/chat" class="nav-link active">Chat</a>
-      </nav>
     </div>
   </header>
 
@@ -31,7 +27,19 @@
     <section class="stage chat-stage">
       <!-- Config -->
       <aside class="panel">
-        <div class="micro-label">Agent Setup</div>
+        <div class="micro-label">Practice Scenario</div>
+        <label class="field"><span class="micro">Who you're practicing with</span>
+          <select id="cfg-scenario"></select>
+          <span class="hint" id="cfg-scenario-sit"></span>
+        </label>
+
+        <div class="micro-label">Model</div>
+        <label class="field"><span class="micro">LLM backend</span>
+          <select id="cfg-model"></select>
+          <span class="hint" id="cfg-model-note"></span>
+        </label>
+
+        <div class="micro-label">Custom Agent <span class="micro" style="opacity:.6">(advanced)</span></div>
         <label class="field"><span class="micro">Name</span>
           <input id="cfg-name" type="text" value="Morgan" autocomplete="off" />
         </label>
@@ -52,7 +60,7 @@
           <input id="cfg-seed-int" type="range" min="0.1" max="1.0" step="0.05" value="0.5" />
         </div>
 
-        <button id="apply" class="btn btn-primary apply-btn">Apply / Reset Agent</button>
+        <button id="apply" class="btn btn-primary apply-btn">Apply Custom Agent</button>
       </aside>
 
       <!-- Chat -->
@@ -85,11 +93,14 @@
           <button id="sp-toggle" class="mini-btn">show</button>
         </div>
         <pre class="sysprompt" id="sysprompt" hidden></pre>
+        <hr />
+        <div class="micro-label">Retrieved Context (RAG) <span class="micro" id="rag-backend" style="opacity:.6"></span></div>
+        <div class="retrieved" id="retrieved"></div>
         <div class="decay" id="decay"></div>
       </aside>
     </section>
 
-    <footer class="foot">OCC Appraisal Theory &nbsp;·&nbsp; Groq LLaMA-3.3-70B &nbsp;·&nbsp; Emotionist.ai</footer>
+    <footer class="foot">OCC Appraisal Theory &nbsp;·&nbsp; Difficult-conversation practice partner &nbsp;·&nbsp; Emotionist.ai</footer>
   </main>
 
   <script src="/common.js"></script>

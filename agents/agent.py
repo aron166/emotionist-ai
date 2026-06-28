@@ -1,9 +1,8 @@
-import os
-from groq import Groq
 from entity.entity import Entity
 from engine.evaluator import AppraisalEvaluator
 from engine.appraisal import OCCAppraisalEngine, REACTIVITY
 from engine.prompt_modifier import PromptModifier
+from llm import get_provider
 
 
 class Agent:
@@ -14,20 +13,23 @@ class Agent:
         base_persona: str = "",
         model: str = "llama-3.3-70b-versatile",
         reactivity: float | None = None,
+        provider: str | None = None,
     ):
         self.name = name
         self.base_persona = base_persona
         self.model = model
+        self.provider_name = provider
         resolved_reactivity = reactivity if reactivity is not None else REACTIVITY.get(personality, 1.0)
         self.entity = Entity(name, personality, reactivity=resolved_reactivity)
-        self.evaluator = AppraisalEvaluator(model=model)
+        self.evaluator = AppraisalEvaluator(model=model, provider=provider)
         self.appraisal_engine = OCCAppraisalEngine()
         self.prompt_modifier = PromptModifier()
-        self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+        self.provider = get_provider(model, provider=provider)
         self.conversation_history: list[dict] = []
         self.last_event: dict = {}
 
-    def receive_and_respond(self, incoming_message: str, witness_event: dict | None = None) -> str:
+    def receive_and_respond(self, incoming_message: str, witness_event: dict | None = None,
+                            retrieved_context: str = "") -> str:
         """
         Full pipeline: appraise incoming message → update emotional state →
         build emotionally-modulated prompt → generate response.
@@ -35,6 +37,9 @@ class Agent:
         witness_event: the appraisal event the *sender* experienced on the
         previous turn — used to generate empathic emotion deltas independently
         of the surface language of their message.
+
+        retrieved_context: budget-trimmed RAG context (engine/memory.py) spliced
+        into the system prompt; empty string disables it.
         """
         # 1. Appraise incoming message
         event = self.evaluator.evaluate(incoming_message)
@@ -52,20 +57,18 @@ class Agent:
 
         # 5. Build system prompt from emotional state
         system_prompt = self.prompt_modifier.build_system_prompt(
-            self.entity, self.base_persona
+            self.entity, self.base_persona, retrieved_context
         )
 
         # 6. Update conversation history
         self.conversation_history.append({"role": "user", "content": incoming_message})
 
         # 7. Call LLM to generate response
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "system", "content": system_prompt}] + self.conversation_history,
+        reply = self.provider.chat(
+            [{"role": "system", "content": system_prompt}] + self.conversation_history,
             temperature=0.8,
             max_tokens=256,
         )
-        reply = response.choices[0].message.content.strip()
 
         # 8. Add own reply to history
         self.conversation_history.append({"role": "assistant", "content": reply})

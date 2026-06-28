@@ -2,8 +2,8 @@
 Emotionist.ai — FastAPI backend.
 
 A thin HTTP layer over the existing emotion engine. The engine (agents/, engine/,
-entity/, emotions/) is untouched: this server just drives two Agent instances and
-serializes their state to JSON for the custom web frontend in web/.
+entity/, emotions/) is untouched: this server drives one configurable practice-
+partner Agent and serializes its state to JSON for the React frontend.
 
 Run:  uv run python server.py     (or: uv run uvicorn server:app --reload)
 """
@@ -17,98 +17,14 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from agents.agent import Agent
+from agents.personas import SCENARIOS, get_scenario, scenario_label
 from engine.appraisal import REACTIVITY
+from engine.memory import SessionMemory
 from engine.prompt_modifier import NEUTRAL_PROFILE, weighted_params, describe_level
 from entity.entity import _score_to_decay
+from llm import AVAILABLE_MODELS, default_model_id, provider_of
 
 load_dotenv()
-
-# ── Demo content (kept in sync with the original app) ─────────────────────────
-ALEX_PERSONA = (
-    "You are Alex, a thoughtful but anxious person who tends to overthink. "
-    "You are having a conversation with Sam, a colleague."
-)
-SAM_PERSONA = (
-    "You are Sam, an optimistic and adaptable person who bounces back easily. "
-    "You are having a conversation with Alex, a colleague."
-)
-
-STARTER_TOPICS = {
-    "Dog died": (
-        "Alex",
-        "Sam, I had a car accident today and I lived thank god — but my dog Mr. Larry didn't make it.",
-    ),
-    "Cancelled project": (
-        "Alex",
-        "Hey, I heard the big presentation got cancelled last minute — the client just pulled out entirely. Did you know about this?",
-    ),
-    "Unexpected praise": (
-        "Sam",
-        "Alex, I just got out of a meeting and the director specifically called out your work as the reason the Q1 numbers looked so good. Genuinely impressive.",
-    ),
-    "Unfair blame": (
-        "Alex",
-        "I cannot believe they pinned the whole deployment failure on our team. We followed the process exactly. This is completely unfair.",
-    ),
-    "New opportunity": (
-        "Sam",
-        "Good news — leadership approved the new project proposal and they want us to lead it. This could be a huge deal for both of us.",
-    ),
-}
-
-
-# ── Game state (single-user local demo) ───────────────────────────────────────
-class Game:
-    """Holds the two agents and the turn loop. One global instance — this is a
-    single-user local demo, so global state is intentional."""
-
-    def __init__(self):
-        self.reset("Cancelled project")
-
-    def reset(self, topic_key: str, alex_rx: float | None = None, sam_rx: float | None = None):
-        if topic_key not in STARTER_TOPICS:
-            topic_key = "Cancelled project"
-        speaker, opening = STARTER_TOPICS[topic_key]
-        self.alex = Agent("Alex", "neurotic", ALEX_PERSONA,
-                          reactivity=alex_rx if alex_rx is not None else REACTIVITY["neurotic"])
-        self.sam = Agent("Sam", "resilient", SAM_PERSONA,
-                         reactivity=sam_rx if sam_rx is not None else REACTIVITY["resilient"])
-        self.messages: list[dict] = []
-        self.turn = 0
-        self.next_message = opening
-        self.next_speaker_is_sam = (speaker == "Alex")  # Sam responds to Alex opener
-        self.opening = {"speaker": speaker, "text": opening}
-        self.topic = topic_key
-
-    def step(self, message: str | None = None) -> dict:
-        """Run one turn. Mirrors the original do_turn(): the next agent responds to
-        the current message, reacting to what it *witnessed* (the sender's last event)."""
-        if message:
-            self.next_message = message
-
-        responder = self.sam if self.next_speaker_is_sam else self.alex
-        sender = self.alex if self.next_speaker_is_sam else self.sam
-
-        reply = responder.receive_and_respond(
-            self.next_message, witness_event=sender.last_event or None
-        )
-
-        self.turn += 1
-        msg = {
-            "turn": self.turn,
-            "speaker": responder.name,
-            "text": reply,
-            "event": responder.last_event,
-            "alex": agent_state(self.alex),
-            "sam": agent_state(self.sam),
-        }
-        self.messages.append(msg)
-        self.next_message = reply
-        self.next_speaker_is_sam = not self.next_speaker_is_sam
-        return msg
-
-
-GAME = Game()
 
 
 # ── Serialization ─────────────────────────────────────────────────────────────
@@ -131,79 +47,105 @@ def agent_state(agent: Agent) -> dict:
     }
 
 
-def full_state() -> dict:
-    return {
-        "turn": GAME.turn,
-        "topic": GAME.topic,
-        "topics": list(STARTER_TOPICS.keys()),
-        "opening": GAME.opening,
-        "next_speaker": "Sam" if GAME.next_speaker_is_sam else "Alex",
-        "messages": GAME.messages,
-        "alex": agent_state(GAME.alex),
-        "sam": agent_state(GAME.sam),
-        "reactivity_ref": REACTIVITY,
-        "has_key": bool(os.environ.get("GROQ_API_KEY")),
-    }
-
-
 # ── API ───────────────────────────────────────────────────────────────────────
 app = FastAPI(title="Emotionist.ai")
 
 
-class ResetReq(BaseModel):
-    topic: str = "Cancelled project"
-    alex_reactivity: float | None = None
-    sam_reactivity: float | None = None
+# Light public-exposure guard for tunnel demos (#38): cap mutating calls per IP.
+# ponytail: in-process fixed window, fine for a single-box demo; swap for slowapi
+# /redis only if this ever runs multi-worker or faces real traffic.
+import time
+from collections import defaultdict
+
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+_RATE_MAX = int(os.environ.get("RATE_LIMIT_PER_MIN", "30"))
+_hits: dict[str, list[float]] = defaultdict(list)
 
 
-class TurnReq(BaseModel):
-    message: str | None = None
+@app.middleware("http")
+async def rate_limit(request: Request, call_next):
+    if request.method == "POST" and request.url.path.startswith("/api/"):
+        ip = request.client.host if request.client else "?"
+        now = time.monotonic()
+        recent = [t for t in _hits[ip] if now - t < 60]
+        if len(recent) >= _RATE_MAX:
+            return JSONResponse({"error": "Rate limit — slow down a moment."}, status_code=429)
+        recent.append(now)
+        _hits[ip] = recent
+    return await call_next(request)
 
 
-@app.get("/api/state")
-def get_state():
-    return full_state()
+def _friendly_llm_error(exc: Exception) -> str:
+    """Turn a raw provider exception into a demo-safe message (#18)."""
+    msg = str(exc)
+    if "api_key" in msg.lower() or "401" in msg:
+        return ("LLM auth failed — your Groq key is missing/expired. "
+                "Add a fresh GROQ_API_KEY to .env, or pick a local (Ollama) model.")
+    if "connection" in msg.lower() or "refused" in msg.lower() or "urlopen" in msg.lower():
+        return ("Couldn't reach the model — for local models start it with "
+                "`ollama serve` (and pull it); for Groq check your connection.")
+    return f"LLM call failed: {msg}"
 
 
-@app.post("/api/reset")
-def reset(req: ResetReq):
-    GAME.reset(req.topic, req.alex_reactivity, req.sam_reactivity)
-    return full_state()
-
-
-@app.post("/api/turn")
-def turn(req: TurnReq):
-    if not os.environ.get("GROQ_API_KEY"):
-        return {"error": "GROQ_API_KEY not set in .env"}
-    GAME.step(req.message)
-    return full_state()
-
-
-# ── Human ↔ agent chat (single-agent mode) ────────────────────────────────────
+# ── Practice-partner chat (the only mode) ─────────────────────────────────────
 SEED_EMOTIONS = ["Joy", "Anger", "Fear", "Shame", "Pride", "Distress",
                  "Gratitude", "Sadness", "Anticipation", "Trust"]
 PERSONALITIES = ["neurotic", "average", "resilient"]
 
 
 class ChatSession:
-    """One configurable agent the human talks to directly (no witness track)."""
+    """One configurable agent the human talks to directly (no witness track).
+
+    Two ways to populate it: free-form manual config, or a scenario preset
+    (#13) — picking a practice counterpart overrides name/personality/persona/
+    seeds from agents/personas.py. Each session owns a SessionMemory for RAG (#22).
+    """
 
     def __init__(self):
-        self.reset("Morgan", "average", REACTIVITY["average"],
-                   "You are Morgan, a thoughtful person having a conversation.")
+        self.reset(scenario_id="angry_customer")
 
-    def reset(self, name, personality, reactivity, persona,
-              seed_emotion=None, seed_intensity=0.0):
-        if personality not in PERSONALITIES:
-            personality = "average"
-        self.agent = Agent(name or "Morgan", personality, persona or "", reactivity=reactivity)
+    def reset(self, name="Morgan", personality="average", reactivity=None,
+              persona="You are Morgan, a thoughtful person having a conversation.",
+              seed_emotion=None, seed_intensity=0.0, model_id=None, scenario_id=None):
+        self.model_id = model_id or default_model_id()
+        self.scenario_id = None
+        seeds: dict[str, float] = {}
+
+        persona_preset = get_scenario(scenario_id)
+        if persona_preset:                                    # scenario takes precedence
+            self.scenario_id = persona_preset.id
+            name = persona_preset.display_name
+            personality = scenario_label(persona_preset)
+            reactivity = persona_preset.reactivity
+            persona = persona_preset.base_persona
+            seeds = dict(persona_preset.seed_emotions)
+        else:
+            if personality not in PERSONALITIES:
+                personality = "average"
+            if reactivity is None:
+                reactivity = REACTIVITY.get(personality, 1.0)
+            if (seed_emotion and seed_emotion != "None" and seed_intensity > 0):
+                seeds = {seed_emotion: seed_intensity}
+
+        self.agent = Agent(name or "Morgan", personality, persona or "",
+                           model=self.model_id, provider=provider_of(self.model_id),
+                           reactivity=reactivity)
         self.messages: list[dict] = []
-        if (seed_emotion and seed_emotion != "None"
-                and seed_emotion in self.agent.entity.emotions and seed_intensity > 0):
-            self.agent.entity.emotions[seed_emotion].activate(seed_intensity)
+        self.memory = SessionMemory()
+        self.last_retrieved: list[dict] = []
+        for emo, intensity in seeds.items():
+            if emo in self.agent.entity.emotions and intensity > 0:
+                self.agent.entity.emotions[emo].activate(intensity)
 
     def send(self, message: str) -> str:
-        reply = self.agent.receive_and_respond(message)  # human chat: no witness_event
+        # RAG: retrieve relevant prior turns *before* storing this one (#25, #26).
+        context, hits = self.memory.context_block(message, k=3)
+        self.last_retrieved = hits
+        reply = self.agent.receive_and_respond(message, retrieved_context=context)
+        self.memory.add(f"User said: {message}")
+        self.memory.add(f"{self.agent.name} replied: {reply}")
         self.messages.append({"role": "user", "text": message})
         self.messages.append({"role": "agent", "text": reply, "event": self.agent.last_event})
         return reply
@@ -218,23 +160,40 @@ def chat_state() -> dict:
     s["persona"] = a.base_persona
     s["reactivity"] = round(a.entity.reactivity, 2)
     s["system_prompt"] = a.prompt_modifier.build_system_prompt(a.entity, a.base_persona)
+    has_key = bool(os.environ.get("GROQ_API_KEY"))
+    # A Groq model needs a key; local (Ollama) models are always offerable.
+    models = [{**m, "available": has_key if m["provider"] == "groq" else True}
+              for m in AVAILABLE_MODELS]
+    scenarios = [
+        {"id": p.id, "display_name": p.display_name, "situation": p.situation,
+         "category": p.category}
+        for p in SCENARIOS.values()
+    ]
     return {
         "agent": s,
         "messages": CHAT.messages,
         "seed_options": SEED_EMOTIONS,
         "personalities": PERSONALITIES,
         "reactivity_ref": REACTIVITY,
-        "has_key": bool(os.environ.get("GROQ_API_KEY")),
+        "has_key": has_key,
+        "models": models,
+        "model_id": CHAT.model_id,
+        "scenarios": scenarios,
+        "scenario_id": CHAT.scenario_id,
+        "retrieved": CHAT.last_retrieved,
+        "retrieval_backend": CHAT.memory.backend,
     }
 
 
 class ChatResetReq(BaseModel):
     name: str = "Morgan"
     personality: str = "average"
-    reactivity: float = 1.0
+    reactivity: float | None = None
     persona: str = "You are Morgan, a thoughtful person having a conversation."
     seed_emotion: str | None = None
     seed_intensity: float = 0.0
+    model_id: str | None = None
+    scenario_id: str | None = None
 
 
 class ChatSendReq(BaseModel):
@@ -249,31 +208,50 @@ def chat_get_state():
 @app.post("/api/chat/reset")
 def chat_reset(req: ChatResetReq):
     CHAT.reset(req.name, req.personality, req.reactivity, req.persona,
-               req.seed_emotion, req.seed_intensity)
+               req.seed_emotion, req.seed_intensity, req.model_id, req.scenario_id)
     return chat_state()
 
 
 @app.post("/api/chat/send")
 def chat_send(req: ChatSendReq):
-    if not os.environ.get("GROQ_API_KEY"):
-        return {"error": "GROQ_API_KEY not set in .env"}
+    # Only Groq models need a key; local (Ollama) models run offline.
+    if provider_of(CHAT.model_id) == "groq" and not os.environ.get("GROQ_API_KEY"):
+        return {"error": "GROQ_API_KEY not set in .env — required for Groq models. "
+                         "Pick a local model to run offline."}
     if req.message.strip():
-        CHAT.send(req.message.strip())
+        try:
+            CHAT.send(req.message.strip())
+        except Exception as e:
+            return {"error": _friendly_llm_error(e)}
     return chat_state()
 
 
 # ── Static frontend ───────────────────────────────────────────────────────────
-WEB_DIR = os.path.join(os.path.dirname(__file__), "web")
+# Serve the React build (web-dist/) when present; otherwise fall back to the
+# legacy vanilla frontend (web/) so a missing/failed build never breaks the demo.
+_HERE = os.path.dirname(__file__)
+_DIST = os.path.join(_HERE, "web-dist")
+REACT = os.path.isfile(os.path.join(_DIST, "index.html"))
+WEB_DIR = _DIST if REACT else os.path.join(_HERE, "web")
+
+
+# The HTML shell must never be cached, or the browser keeps an old build's asset
+# refs after a rebuild (hashed JS/CSS can cache forever — they're content-named).
+_NO_CACHE = {"Cache-Control": "no-store, max-age=0"}
+
+
+# React build → index.html (SPA). Legacy fallback → chat.html (the only view now).
+_SHELL = "index.html" if REACT else "chat.html"
 
 
 @app.get("/")
 def index():
-    return FileResponse(os.path.join(WEB_DIR, "index.html"))
+    return FileResponse(os.path.join(WEB_DIR, _SHELL), headers=_NO_CACHE)
 
 
 @app.get("/chat")
 def chat_page():
-    return FileResponse(os.path.join(WEB_DIR, "chat.html"))
+    return FileResponse(os.path.join(WEB_DIR, _SHELL), headers=_NO_CACHE)
 
 
 app.mount("/", StaticFiles(directory=WEB_DIR), name="web")
