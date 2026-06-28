@@ -67,6 +67,17 @@ export default function Chat() {
     finally { setBusy(false); }
   }
 
+  async function setLanguage(lang) {
+    if (busy || !state || state.language === lang) return;
+    setBusy(true);
+    try {
+      const s = await api("/api/chat/language", { language: lang });
+      if (s.error) { alert(s.error); return; }
+      setState(s);
+    } catch (e) { alert("Request failed: " + e); }
+    finally { setBusy(false); }
+  }
+
   async function sendMessage() {
     const v = msg.trim();
     if (!v || busy) return;
@@ -120,6 +131,17 @@ export default function Chat() {
           </select>
           <span className="hint">{md ? md.note : ""}</span>
         </label>
+
+        <div className="micro-label">Response Language</div>
+        <div className="lang-toggle">
+          <button type="button" disabled={busy}
+            className={"lang-btn" + (state.language === "hu" ? " active" : "")}
+            onClick={() => setLanguage("hu")}>Magyar</button>
+          <button type="button" disabled={busy}
+            className={"lang-btn" + (state.language === "en" ? " active" : "")}
+            onClick={() => setLanguage("en")}>English</button>
+        </div>
+        <span className="hint">Switches mid-conversation — use English to show the local model at its best.</span>
 
         <div className="micro-label">Custom Agent <span className="micro" style={{ opacity: 0.6 }}>(advanced)</span></div>
         <label className="field"><span className="micro">Name</span>

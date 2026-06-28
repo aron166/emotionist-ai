@@ -34,5 +34,5 @@ Pre-warm everything **before** they're watching — first Ollama call is slow (~
 | Port busy | `PORT=8001 ./run.sh` (and `PORT=8001 ./tunnel.sh`) |
 | Groq model greyed out | `GROQ_API_KEY` missing/invalid in `.env` → use a local model |
 | Local model errors | `ollama serve` not running, or model not pulled (`ollama pull qwen2.5:3b`) |
-| Hungarian looks broken | switch to **Groq Llama 3.3 70B** in the model dropdown |
+| Hungarian looks broken | switch to **Groq Llama 3.3 70B** in the model dropdown, or flip the **language toggle to English** (best for the local qwen model) |
 | Tunnel won't start | app not running, or `cloudflared` not installed |

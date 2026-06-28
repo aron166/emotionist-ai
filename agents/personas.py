@@ -27,8 +27,15 @@ class ScenarioPersona:
     category: str              # customer_support | hr | onboarding
     personality_score: float
     reactivity: float
-    base_persona: str
+    base_persona: str          # Hungarian (default demo language)
+    base_persona_en: str = ""  # English variant — used when the UI language is English
     seed_emotions: dict[str, float] = field(default_factory=dict)
+
+    def persona_for(self, language: str) -> str:
+        """The persona text in the requested language (falls back to Hungarian)."""
+        if language == "en" and self.base_persona_en:
+            return self.base_persona_en
+        return self.base_persona
 
 
 def _score_to_label(score: float) -> str:
@@ -58,6 +65,14 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "indulatosan. Azonnali megoldást akarsz, nem érdekelnek a kifogások. Ha az "
             "ügyintéző tényleg meghallgat és konkrét segítséget ad, fokozatosan megnyugszol."
         ),
+        base_persona_en=(
+            "You are an angry bank customer. This morning your card was blocked for no "
+            "reason, which made an important purchase fail in a shop in front of other "
+            "people. You are now talking to the bank's customer service. You speak in "
+            "English, directly and angrily. You want an immediate solution and have no "
+            "patience for excuses. If the agent truly listens and gives concrete help, you "
+            "gradually calm down."
+        ),
         seed_emotions={"Anger": 0.6, "Distress": 0.4},
     ),
     "fraud_victim": ScenarioPersona(
@@ -75,6 +90,13 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "gyorsan, kapkodva, sok kérdéssel. Megnyugtató, határozott és együttérző "
             "tájékoztatásra van szükséged, hogy lecsillapodj."
         ),
+        base_persona_en=(
+            "You are a bank customer who has been scammed: strangers took several hundred "
+            "thousand forints from your account after a phishing call. You are in a panic "
+            "and afraid you've lost your savings. You're calling the bank for help. You "
+            "speak in English, fast and flustered, with many questions. You need calm, "
+            "firm, empathetic guidance to settle down."
+        ),
         seed_emotions={"Fear": 0.6, "Distress": 0.5},
     ),
     "defensive_employee": ScenarioPersona(
@@ -91,6 +113,12 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "hárítani. Magyarul beszélsz, védekezően, néha sértődötten. Ha a vezetőd "
             "konkrét, tárgyilagos és tisztelettudó, hajlandó vagy lassan elismerni a hibákat."
         ),
+        base_persona_en=(
+            "You are a bank employee in a performance review. You feel the criticism is "
+            "unfair and tend to shift blame onto other people or circumstances. You speak "
+            "in English, defensively, sometimes offended. If your manager is specific, "
+            "objective and respectful, you are willing to slowly acknowledge your mistakes."
+        ),
         seed_emotions={"Reproach": 0.4, "Shame": 0.3},
     ),
     "declined_loan": ScenarioPersona(
@@ -106,6 +134,12 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "magabiztos vagy, de kitartóan vitatkozol és pontos indoklást követelsz. "
             "Magyarul beszélsz, udvariasan, de határozottan. Nem hagyod magad lerázni "
             "általános válaszokkal; logikus érveket vársz."
+        ),
+        base_persona_en=(
+            "You are a bank customer whose loan application was rejected. You are calm and "
+            "confident, but you argue persistently and demand a precise justification. You "
+            "speak in English, politely but firmly. You won't be brushed off with generic "
+            "answers; you expect logical reasoning."
         ),
         seed_emotions={"Reproach": 0.3},
     ),

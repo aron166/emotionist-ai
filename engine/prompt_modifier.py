@@ -253,7 +253,7 @@ def _tone_instruction(params: dict[str, float]) -> str:
 
 class PromptModifier:
     def build_system_prompt(self, entity: Entity, base_persona: str = "",
-                            retrieved_context: str = "") -> str:
+                            retrieved_context: str = "", language: str = "hu") -> str:
         dominant = entity.get_dominant_emotions(n=5)
         params = weighted_params(dominant)
 
@@ -299,4 +299,14 @@ class PromptModifier:
             "Keep it to 2–4 sentences. Sound like a real person, not an AI assistant."
         )
 
-        return persona_block + context_block + emotion_block + behaviour_block + output_instruction
+        # ── Language directive (last = most salient) ───────────────────────────
+        # Personas are written in Hungarian; this lets the demo flip the *response*
+        # language without rewriting them — e.g. English for the weaker local model.
+        if language == "en":
+            lang_block = ("\n\n## Language\n\nAlways respond ONLY in English, "
+                          "regardless of the language used in the description above or by the user.")
+        else:
+            lang_block = ("\n\n## Nyelv\n\nMINDIG és KIZÁRÓLAG magyarul válaszolj, "
+                          "függetlenül attól, milyen nyelven szólnak hozzád.")
+
+        return persona_block + context_block + emotion_block + behaviour_block + output_instruction + lang_block

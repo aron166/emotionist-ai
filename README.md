@@ -270,7 +270,7 @@ A dark, premium React interface served at **http://127.0.0.1:8000**.
 
 **Chat (the practice partner).** Pick a **practice scenario** (a selectable card for the counterpart you rehearse against) and an **LLM model**, then have the conversation. Or build a custom agent — name, personality, persona, reactivity, pre-seeded emotions. Live panels show the counterpart's emotion bars, behavioral profile, the **"Show live system prompt"** toggle (reveals what the LLM is told to *feel* — "you **are** angry, not act angry"), and a **Retrieved Context (RAG)** panel showing which earlier turns were pulled into the prompt.
 
-The **model switcher** matters for the demo: Groq `llama-3.3-70b` produces strong Hungarian; local `qwen2.5:3b` runs offline/free but with weaker Hungarian. Switch live to show the trade-off.
+The **model switcher** matters for the demo: Groq `llama-3.3-70b` produces strong Hungarian; local `qwen2.5:3b` runs offline/free but with weaker Hungarian. Switch live to show the trade-off. A **language toggle** (Magyar / English) flips the counterpart's response language mid-conversation — show the local model at its best in English, then switch back to Hungarian on Groq.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

@@ -29,7 +29,7 @@ class Agent:
         self.last_event: dict = {}
 
     def receive_and_respond(self, incoming_message: str, witness_event: dict | None = None,
-                            retrieved_context: str = "") -> str:
+                            retrieved_context: str = "", language: str = "hu") -> str:
         """
         Full pipeline: appraise incoming message → update emotional state →
         build emotionally-modulated prompt → generate response.
@@ -57,7 +57,7 @@ class Agent:
 
         # 5. Build system prompt from emotional state
         system_prompt = self.prompt_modifier.build_system_prompt(
-            self.entity, self.base_persona, retrieved_context
+            self.entity, self.base_persona, retrieved_context, language
         )
 
         # 6. Update conversation history

@@ -104,11 +104,15 @@ class ChatSession:
     """
 
     def __init__(self):
+        self.language = "hu"          # response language; persists across resets
         self.reset(scenario_id="angry_customer")
 
     def reset(self, name="Morgan", personality="average", reactivity=None,
               persona="You are Morgan, a thoughtful person having a conversation.",
-              seed_emotion=None, seed_intensity=0.0, model_id=None, scenario_id=None):
+              seed_emotion=None, seed_intensity=0.0, model_id=None, scenario_id=None,
+              language=None):
+        if language in ("hu", "en"):
+            self.language = language
         self.model_id = model_id or default_model_id()
         self.scenario_id = None
         seeds: dict[str, float] = {}
@@ -119,19 +123,23 @@ class ChatSession:
             name = persona_preset.display_name
             personality = scenario_label(persona_preset)
             reactivity = persona_preset.reactivity
-            persona = persona_preset.base_persona
+            self._persona_hu = persona_preset.base_persona
+            self._persona_en = persona_preset.persona_for("en")
             seeds = dict(persona_preset.seed_emotions)
         else:
             if personality not in PERSONALITIES:
                 personality = "average"
             if reactivity is None:
                 reactivity = REACTIVITY.get(personality, 1.0)
+            # custom agents have no translation — the language directive does the work
+            self._persona_hu = self._persona_en = persona or ""
             if (seed_emotion and seed_emotion != "None" and seed_intensity > 0):
                 seeds = {seed_emotion: seed_intensity}
 
-        self.agent = Agent(name or "Morgan", personality, persona or "",
+        self.agent = Agent(name or "Morgan", personality, self._persona_hu,
                            model=self.model_id, provider=provider_of(self.model_id),
                            reactivity=reactivity)
+        self._apply_language()
         self.messages: list[dict] = []
         self.memory = SessionMemory()
         self.last_retrieved: list[dict] = []
@@ -139,11 +147,16 @@ class ChatSession:
             if emo in self.agent.entity.emotions and intensity > 0:
                 self.agent.entity.emotions[emo].activate(intensity)
 
+    def _apply_language(self):
+        """Point the agent at the persona text for the current language."""
+        self.agent.base_persona = self._persona_en if self.language == "en" else self._persona_hu
+
     def send(self, message: str) -> str:
         # RAG: retrieve relevant prior turns *before* storing this one (#25, #26).
         context, hits = self.memory.context_block(message, k=3)
         self.last_retrieved = hits
-        reply = self.agent.receive_and_respond(message, retrieved_context=context)
+        reply = self.agent.receive_and_respond(message, retrieved_context=context,
+                                               language=self.language)
         self.memory.add(f"User said: {message}")
         self.memory.add(f"{self.agent.name} replied: {reply}")
         self.messages.append({"role": "user", "text": message})
@@ -159,7 +172,8 @@ def chat_state() -> dict:
     s = agent_state(a)
     s["persona"] = a.base_persona
     s["reactivity"] = round(a.entity.reactivity, 2)
-    s["system_prompt"] = a.prompt_modifier.build_system_prompt(a.entity, a.base_persona)
+    s["system_prompt"] = a.prompt_modifier.build_system_prompt(
+        a.entity, a.base_persona, language=CHAT.language)
     has_key = bool(os.environ.get("GROQ_API_KEY"))
     # A Groq model needs a key; local (Ollama) models are always offerable.
     models = [{**m, "available": has_key if m["provider"] == "groq" else True}
@@ -182,6 +196,7 @@ def chat_state() -> dict:
         "scenario_id": CHAT.scenario_id,
         "retrieved": CHAT.last_retrieved,
         "retrieval_backend": CHAT.memory.backend,
+        "language": CHAT.language,
     }
 
 
@@ -194,10 +209,15 @@ class ChatResetReq(BaseModel):
     seed_intensity: float = 0.0
     model_id: str | None = None
     scenario_id: str | None = None
+    language: str | None = None
 
 
 class ChatSendReq(BaseModel):
     message: str
+
+
+class ChatLangReq(BaseModel):
+    language: str = "hu"
 
 
 @app.get("/api/chat/state")
@@ -208,7 +228,17 @@ def chat_get_state():
 @app.post("/api/chat/reset")
 def chat_reset(req: ChatResetReq):
     CHAT.reset(req.name, req.personality, req.reactivity, req.persona,
-               req.seed_emotion, req.seed_intensity, req.model_id, req.scenario_id)
+               req.seed_emotion, req.seed_intensity, req.model_id, req.scenario_id,
+               req.language)
+    return chat_state()
+
+
+@app.post("/api/chat/language")
+def chat_set_language(req: ChatLangReq):
+    # Switch response language mid-conversation — takes effect on the next message,
+    # no reset (the prompt is rebuilt every turn).
+    CHAT.language = req.language if req.language in ("hu", "en") else "hu"
+    CHAT._apply_language()
     return chat_state()
 
 
