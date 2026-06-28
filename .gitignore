@@ -22,3 +22,6 @@ skills-lock.json
 
 # internal build/decision log — local only, never publish
 BUILD_NOTES.md
+
+# presentation / slides — local only, never publish
+*.pdf
