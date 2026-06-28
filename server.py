@@ -180,7 +180,7 @@ def chat_state() -> dict:
               for m in AVAILABLE_MODELS]
     scenarios = [
         {"id": p.id, "display_name": p.display_name, "situation": p.situation,
-         "category": p.category}
+         "category": p.category, "your_role": p.your_role}
         for p in SCENARIOS.values()
     ]
     return {

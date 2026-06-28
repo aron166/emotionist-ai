@@ -95,6 +95,7 @@ export default function Chat() {
   const a = state.agent;
   const rx = state.reactivity_ref;
   const md = state.models.find((m) => m.id === state.model_id);
+  const activeScenario = state.scenarios.find((s) => s.id === state.scenario_id);
 
   return (
     <section className="stage chat-stage">
@@ -182,6 +183,12 @@ export default function Chat() {
           <span className="micro">Conversation</span>
           <span className="pill">{a.name}</span>
         </div>
+        {activeScenario && activeScenario.your_role && (
+          <div className="role-cue">
+            <span className="role-cue-tag">Your role</span>
+            {activeScenario.your_role}
+          </div>
+        )}
         <div className="chat" ref={chatRef}>
           {(!state.messages || !state.messages.length) && !busy ? (
             <div className="empty">Start the conversation — say the first thing you'd say to them.</div>

@@ -293,6 +293,13 @@ class PromptModifier:
 
         # ── Output instruction ─────────────────────────────────────────────────
         output_instruction = (
+            "## Your role — do not break it\n\n"
+            "You ARE the character described above, and only that character. The person "
+            "messaging you is the OTHER party in this situation (e.g. the staff member you "
+            "are dealing with). Never take on their role, never act as an assistant, support "
+            "agent, or helper, never apologise as if you worked there, and never say or hint "
+            "that you are an AI. Stay fully in character even if the other person is "
+            "confusing, rude, or unhelpful.\n\n"
             "## Your response\n\n"
             "Respond in character. Let your emotional state shape your word choice, sentence length, "
             "and tone — don't describe or explain your emotions, just *be* them. "

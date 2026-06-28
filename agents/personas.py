@@ -29,6 +29,7 @@ class ScenarioPersona:
     reactivity: float
     base_persona: str          # Hungarian (default demo language)
     base_persona_en: str = ""  # English variant — used when the UI language is English
+    your_role: str = ""        # what the HUMAN plays + their goal (shown in the UI)
     seed_emotions: dict[str, float] = field(default_factory=dict)
 
     def persona_for(self, language: str) -> str:
@@ -73,6 +74,7 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "patience for excuses. If the agent truly listens and gives concrete help, you "
             "gradually calm down."
         ),
+        your_role="You're the bank agent — de-escalate the customer and resolve the wrongful card block.",
         seed_emotions={"Anger": 0.6, "Distress": 0.4},
     ),
     "fraud_victim": ScenarioPersona(
@@ -97,6 +99,7 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "speak in English, fast and flustered, with many questions. You need calm, "
             "firm, empathetic guidance to settle down."
         ),
+        your_role="You're the bank agent — reassure the panicked fraud victim and guide the next steps.",
         seed_emotions={"Fear": 0.6, "Distress": 0.5},
     ),
     "defensive_employee": ScenarioPersona(
@@ -119,6 +122,7 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "in English, defensively, sometimes offended. If your manager is specific, "
             "objective and respectful, you are willing to slowly acknowledge your mistakes."
         ),
+        your_role="You're the manager — give honest feedback and get the employee to take it on board.",
         seed_emotions={"Reproach": 0.4, "Shame": 0.3},
     ),
     "declined_loan": ScenarioPersona(
@@ -141,6 +145,7 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "speak in English, politely but firmly. You won't be brushed off with generic "
             "answers; you expect logical reasoning."
         ),
+        your_role="You're the bank agent — explain the rejection clearly and hold your ground calmly.",
         seed_emotions={"Reproach": 0.3},
     ),
 }
