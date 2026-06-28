@@ -185,8 +185,14 @@ export default function Chat() {
         </div>
         {activeScenario && activeScenario.your_role && (
           <div className="role-cue">
-            <span className="role-cue-tag">Your role</span>
-            {activeScenario.your_role}
+            <div className="role-cue-line">
+              <span className="role-cue-tag">You play</span>
+              {activeScenario.your_role}
+            </div>
+            <div className="role-cue-line">
+              <span className="role-cue-tag alt">AI plays</span>
+              {activeScenario.display_name} — {activeScenario.situation}
+            </div>
           </div>
         )}
         <div className="chat" ref={chatRef}>

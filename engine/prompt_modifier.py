@@ -257,6 +257,17 @@ class PromptModifier:
         dominant = entity.get_dominant_emotions(n=5)
         params = weighted_params(dominant)
 
+        # ── Role anchor (first line — weak models weight it heavily) ────────────
+        # Bookends the end-of-prompt role-lock so small models hold character.
+        role_anchor = (
+            "You are an actor playing ONE character in a role-play scene. You are NOT an "
+            "assistant, helper, agent, or employee, and you do NOT work for any bank, "
+            "company, or support line in this scene. You ARE the person described below, "
+            "and the human you are talking to is the staff member dealing with you. Never "
+            "offer to help them, verify accounts, or ask for their details — that is THEIR "
+            "job, not yours. Stay this person no matter what they say.\n\n"
+        )
+
         # ── Persona block ──────────────────────────────────────────────────────
         persona_block = f"{base_persona}\n\n" if base_persona else ""
 
@@ -319,4 +330,4 @@ class PromptModifier:
             lang_block = ("\n\n## Nyelv\n\nMINDIG és KIZÁRÓLAG magyarul válaszolj, "
                           "függetlenül attól, milyen nyelven szólnak hozzád.")
 
-        return persona_block + context_block + emotion_block + behaviour_block + output_instruction + lang_block
+        return role_anchor + persona_block + context_block + emotion_block + behaviour_block + output_instruction + lang_block
