@@ -1,5 +1,5 @@
 """
-Tests for engine/prompt_modifier.py — covering the functions and data
+Tests for engine/prompt_modifier.py - covering the functions and data
 that were changed in this PR:
   - weighted_params() (renamed from _weighted_params)
   - describe_level()  (renamed from _describe_level)
@@ -18,7 +18,7 @@ from engine.prompt_modifier import (
 )
 
 
-# ── describe_level ─────────────────────────────────────────────────────────────
+# -- describe_level -------------------------------------------------------------
 
 class TestDescribeLevel:
     def test_very_high_at_exactly_80(self):
@@ -72,7 +72,7 @@ class TestDescribeLevel:
         assert describe_level(-5.0) == "very low"
 
 
-# ── weighted_params ────────────────────────────────────────────────────────────
+# -- weighted_params ------------------------------------------------------------
 
 class TestWeightedParams:
     def test_empty_list_returns_neutral_profile(self):
@@ -85,7 +85,7 @@ class TestWeightedParams:
         assert NEUTRAL_PROFILE["aggression"] != 999
 
     def test_zero_intensity_returns_neutral_profile(self):
-        # All zeros → total_weight == 0 → NEUTRAL_PROFILE
+        # All zeros -> total_weight == 0 -> NEUTRAL_PROFILE
         result = weighted_params([("Joy", 0.0), ("Anger", 0.0)])
         assert result == NEUTRAL_PROFILE
 
@@ -144,7 +144,7 @@ class TestWeightedParams:
         assert result["cooperation"] == pytest.approx(95.0)
 
 
-# ── BEHAVIORAL_PROFILES ────────────────────────────────────────────────────────
+# -- BEHAVIORAL_PROFILES --------------------------------------------------------
 
 class TestBehavioralProfiles:
     def test_core_emotions_present(self):
@@ -179,7 +179,7 @@ class TestBehavioralProfiles:
             assert 0 <= val <= 100
 
 
-# ── PromptModifier.build_system_prompt ────────────────────────────────────────
+# -- PromptModifier.build_system_prompt ----------------------------------------
 
 class TestPromptModifier:
     def _make_entity(self, personality="average"):

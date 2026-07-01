@@ -12,7 +12,7 @@ export default function App() {
           <span className="eyebrow">Enterprise Conversation Training</span>
           <div className="brand">EMOTIONIST<span className="dot">.AI</span></div>
           <div className="brand-sub">
-            Practice partner that <em>feels</em> — rehearse a hard conversation against an
+            Practice partner that <em>feels</em> - rehearse a hard conversation against an
             emotionally-reactive counterpart whose mood persists until you handle it well.
           </div>
         </div>

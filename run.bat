@@ -17,7 +17,7 @@ call .venv\Scripts\activate.bat
 echo [*] Installing dependencies
 pip install -q -r requirements.txt || (echo [X] pip install failed & exit /b 1)
 
-REM Frontend build (#44) — falls back to legacy web/ if Node missing or build fails
+REM Frontend build (#44) - falls back to legacy web/ if Node missing or build fails
 where npm >nul 2>&1 && if exist frontend (
   if not exist web-dist (
     echo [*] Building frontend (React)

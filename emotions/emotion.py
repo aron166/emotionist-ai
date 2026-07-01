@@ -16,7 +16,7 @@ class Emotion:
         self.is_active = False
 
     def activate(self, delta: float):
-        """Adjust intensity by delta — positive raises it, negative soothes it —
+        """Adjust intensity by delta - positive raises it, negative soothes it -
         clamped to [0, 1]. Drops to fully inactive when it falls to a non-felt level."""
         self.intensity = max(0.0, min(1.0, self.intensity + delta))
         if self.intensity <= self.ACTIVATION_THRESHOLD:

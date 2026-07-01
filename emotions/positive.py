@@ -42,13 +42,13 @@ class Love(Emotion):
 
 
 class Gratification(Emotion):
-    """Compound: Pride + Joy (own praiseworthy action → desirable event)."""
+    """Compound: Pride + Joy (own praiseworthy action -> desirable event)."""
     def __init__(self, decay_rate: float):
         super().__init__("Gratification", 1, decay_rate)
 
 
 class Gratitude(Emotion):
-    """Compound: Admiration + Joy (other's action → desirable event for self)."""
+    """Compound: Admiration + Joy (other's action -> desirable event for self)."""
     def __init__(self, decay_rate: float):
         super().__init__("Gratitude", 1, decay_rate)
 

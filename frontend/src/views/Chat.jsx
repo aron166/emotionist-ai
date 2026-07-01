@@ -90,7 +90,7 @@ export default function Chat() {
     finally { setBusy(false); }
   }
 
-  if (!state) return <section className="stage chat-stage"><div className="empty">Loading…</div></section>;
+  if (!state) return <section className="stage chat-stage"><div className="empty">Loading...</div></section>;
 
   const a = state.agent;
   const rx = state.reactivity_ref;
@@ -142,7 +142,7 @@ export default function Chat() {
             className={"lang-btn" + (state.language === "en" ? " active" : "")}
             onClick={() => setLanguage("en")}>English</button>
         </div>
-        <span className="hint">Switches mid-conversation — use English to show the local model at its best.</span>
+        <span className="hint">Switches mid-conversation - use English to show the local model at its best.</span>
 
         <div className="micro-label">Custom Agent <span className="micro" style={{ opacity: 0.6 }}>(advanced)</span></div>
         <label className="field"><span className="micro">Name</span>
@@ -157,7 +157,7 @@ export default function Chat() {
         <label className="field"><span className="micro">Reactivity <em>{parseFloat(cfg.reactivity).toFixed(2)}</em></span>
           <input type="range" min="0.3" max="2.0" step="0.05" value={cfg.reactivity}
                  onChange={(e) => setCfg({ ...cfg, reactivity: e.target.value })} />
-          <span className="hint">resilient {rx.resilient} · average {rx.average} · neurotic {rx.neurotic}</span>
+          <span className="hint">resilient {rx.resilient} - average {rx.average} - neurotic {rx.neurotic}</span>
         </label>
         <label className="field"><span className="micro">Persona</span>
           <textarea rows="3" value={cfg.persona} onChange={(e) => setCfg({ ...cfg, persona: e.target.value })} />
@@ -191,13 +191,13 @@ export default function Chat() {
             </div>
             <div className="role-cue-line">
               <span className="role-cue-tag alt">AI plays</span>
-              {activeScenario.display_name} — {activeScenario.situation}
+              {activeScenario.display_name} - {activeScenario.situation}
             </div>
           </div>
         )}
         <div className="chat" ref={chatRef}>
           {(!state.messages || !state.messages.length) && !busy ? (
-            <div className="empty">Start the conversation — say the first thing you'd say to them.</div>
+            <div className="empty">Start the conversation - say the first thing you'd say to them.</div>
           ) : (
             state.messages.map((m, i) =>
               m.role === "user" ? (
@@ -217,12 +217,12 @@ export default function Chat() {
           {busy && (
             <div className="msg alex">
               <div className="bubble"><span className="thinking"><span></span><span></span><span></span></span></div>
-              <div className="meta">Counterpart · thinking</div>
+              <div className="meta">Counterpart - thinking</div>
             </div>
           )}
         </div>
         <div className="inject">
-          <input type="text" placeholder="Say something to the agent…" value={msg} disabled={busy}
+          <input type="text" placeholder="Say something to the agent..." value={msg} disabled={busy}
                  autoComplete="off" onChange={(e) => setMsg(e.target.value)}
                  onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }} />
           <button className="btn btn-primary" disabled={busy} onClick={sendMessage}>Send</button>
@@ -249,18 +249,18 @@ export default function Chat() {
         <hr />
         <div className="micro-label">
           Retrieved Context (RAG) <span className="micro" style={{ opacity: 0.6 }}>
-            {state.retrieval_backend ? "· " + state.retrieval_backend : ""}</span>
+            {state.retrieval_backend ? "- " + state.retrieval_backend : ""}</span>
         </div>
         <div className="retrieved">
           {!state.retrieved || !state.retrieved.length ? (
-            <div className="calm">— nothing retrieved yet —</div>
+            <div className="calm">- nothing retrieved yet -</div>
           ) : (
             state.retrieved.map((h, i) => (
               <div className="rag-row" key={i}><span className="rag-score">{h.score}</span>{h.text}</div>
             ))
           )}
         </div>
-        <div className="decay">decay λ {a.decay} · reactivity {a.reactivity}</div>
+        <div className="decay">decay lambda {a.decay} - reactivity {a.reactivity}</div>
       </aside>
     </section>
   );

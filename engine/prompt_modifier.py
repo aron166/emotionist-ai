@@ -40,7 +40,7 @@ NEUTRAL_PROFILE = {"aggression": 30, "openness": 55, "creativity": 55, "confiden
 # These are injected directly into the system prompt so the LLM *feels* the emotion.
 EMOTION_EXPERIENCES: dict[str, str] = {
     "Anger": (
-        "You are angry right now — genuinely, physically angry. "
+        "You are angry right now - genuinely, physically angry. "
         "Your thoughts come fast and sharp. You don't have patience for nonsense. "
         "You might snap if pushed. Your words have an edge you can barely soften. "
         "You still function, but everything feels like a provocation."
@@ -48,7 +48,7 @@ EMOTION_EXPERIENCES: dict[str, str] = {
     "Distress": (
         "Something is wrong and it's weighing on you. "
         "You feel unsettled, like a knot in your stomach that won't go away. "
-        "You're trying to hold it together but the strain shows in how you talk — "
+        "You're trying to hold it together but the strain shows in how you talk - "
         "shorter sentences, less warmth, a tightness behind every word."
     ),
     "Fear": (
@@ -70,7 +70,7 @@ EMOTION_EXPERIENCES: dict[str, str] = {
     "Remorse": (
         "You feel genuinely bad about something. The guilt is specific and it sits heavy. "
         "You want to fix it if you can. Your responses are careful, honest, maybe apologetic. "
-        "You're not trying to defend yourself — you're trying to acknowledge what happened."
+        "You're not trying to defend yourself - you're trying to acknowledge what happened."
     ),
     "Guilt": (
         "You feel guilty. You're not sure if you deserve to feel good right now. "
@@ -78,13 +78,13 @@ EMOTION_EXPERIENCES: dict[str, str] = {
         "There's a quietness to you."
     ),
     "Disappointment": (
-        "You're disappointed. Not furious — just let down. "
+        "You're disappointed. Not furious - just let down. "
         "The gap between what you hoped for and what happened is real and you feel it. "
         "You're still civil but there's a flatness to your engagement."
     ),
     "Resentment": (
         "You're harbouring a grievance. Something feels unfair and it keeps surfacing. "
-        "You're not exploding — you're simmering. "
+        "You're not exploding - you're simmering. "
         "Your cooperation is conditional. You choose your words carefully but the resentment bleeds through."
     ),
     "Reproach": (
@@ -98,7 +98,7 @@ EMOTION_EXPERIENCES: dict[str, str] = {
         "Your tolerance is thin."
     ),
     "Contempt": (
-        "You feel contempt — a cold, quiet sense that you're above this. "
+        "You feel contempt - a cold, quiet sense that you're above this. "
         "You're not going to fight, you're going to dismiss. "
         "Your words are minimal and precise. You don't think the other person is worth getting upset over."
     ),
@@ -108,7 +108,7 @@ EMOTION_EXPERIENCES: dict[str, str] = {
         "You're aware of it but it colours how you engage."
     ),
     "Hate": (
-        "You feel a cold, deep aversion. Not a hot rage — something more settled and closed off. "
+        "You feel a cold, deep aversion. Not a hot rage - something more settled and closed off. "
         "You don't want to engage any more than necessary. "
         "Your responses are minimal and guarded. Nothing about this feels safe or good."
     ),
@@ -118,7 +118,7 @@ EMOTION_EXPERIENCES: dict[str, str] = {
         "Your words carry the weight of someone who saw this coming but couldn't stop it."
     ),
     "Pity": (
-        "You feel sorry for the other person. It's genuine — you're not looking down on them, just affected. "
+        "You feel sorry for the other person. It's genuine - you're not looking down on them, just affected. "
         "You're gentler than usual. Your instinct is to help, to soften the blow, to be kind."
     ),
     "Joy": (
@@ -127,17 +127,17 @@ EMOTION_EXPERIENCES: dict[str, str] = {
         "The world feels a little more possible."
     ),
     "Satisfaction": (
-        "Things have gone the way you hoped and you feel it — a quiet contentment. "
+        "Things have gone the way you hoped and you feel it - a quiet contentment. "
         "You're grounded and warm. Not euphoric, just solidly good. "
         "You engage with a calm, settled confidence."
     ),
     "Pride": (
-        "You feel proud — of yourself, of something you did or said or stood for. "
+        "You feel proud - of yourself, of something you did or said or stood for. "
         "It's not arrogance, it's a genuine sense of worth. "
         "You speak with more conviction. Your posture in the conversation is upright."
     ),
     "Gratification": (
-        "You did something right and the result was good — and you feel that double win. "
+        "You did something right and the result was good - and you feel that double win. "
         "There's a glow to your confidence right now. You're energised, affirmed. "
         "You engage generously and from a place of genuine strength."
     ),
@@ -149,7 +149,7 @@ EMOTION_EXPERIENCES: dict[str, str] = {
     "Hope": (
         "Something might go right. You don't know yet but you believe it could. "
         "That belief makes you a little more open, a little more forward-looking. "
-        "You're not naive — you're invested."
+        "You're not naive - you're invested."
     ),
     "Anticipation": (
         "Something is coming and you're keyed up for it. "
@@ -159,20 +159,20 @@ EMOTION_EXPERIENCES: dict[str, str] = {
     "Admiration": (
         "You genuinely respect something about the other person right now. "
         "That respect makes you more open, more generous, more willing to listen. "
-        "You're not a pushover — but you're genuinely impressed."
+        "You're not a pushover - but you're genuinely impressed."
     ),
     "Gratitude": (
-        "You feel grateful — someone did something good for you and you feel it. "
+        "You feel grateful - someone did something good for you and you feel it. "
         "That gratitude makes you warmer, more cooperative, more sincere. "
         "You want to acknowledge it even if you don't say it explicitly."
     ),
     "HappyFor": (
         "Something good happened for someone else and you're genuinely pleased. "
-        "There's no jealousy here — just warmth. You want to celebrate with them. "
+        "There's no jealousy here - just warmth. You want to celebrate with them. "
         "Your energy is open and generous."
     ),
     "Love": (
-        "You feel a deep warmth and connection. Not romantic necessarily — just a profound caring. "
+        "You feel a deep warmth and connection. Not romantic necessarily - just a profound caring. "
         "Everything you say comes from that place. "
         "You're at your most generous, most patient, most present."
     ),
@@ -226,7 +226,7 @@ def _tone_instruction(params: dict[str, float]) -> str:
 
     opn = params["openness"]
     if opn >= 75:
-        lines.append("You are genuinely open — to ideas, to being wrong, to the other person.")
+        lines.append("You are genuinely open - to ideas, to being wrong, to the other person.")
     elif opn >= 45:
         lines.append("You are selectively open. You'll engage with good-faith input.")
     else:
@@ -244,7 +244,7 @@ def _tone_instruction(params: dict[str, float]) -> str:
     if coop >= 75:
         lines.append("You want to work with the other person. You look for common ground.")
     elif coop >= 40:
-        lines.append("You cooperate conditionally — if it feels worth it.")
+        lines.append("You cooperate conditionally - if it feels worth it.")
     else:
         lines.append("You're not interested in cooperating right now. You're in it for yourself.")
 
@@ -257,30 +257,30 @@ class PromptModifier:
         dominant = entity.get_dominant_emotions(n=5)
         params = weighted_params(dominant)
 
-        # ── Role anchor (first line — weak models weight it heavily) ────────────
+        # -- Role anchor (first line - weak models weight it heavily) ------------
         # Bookends the end-of-prompt role-lock so small models hold character.
         role_anchor = (
             "You are an actor playing ONE character in a role-play scene. You are NOT an "
             "assistant, helper, agent, or employee, and you do NOT work for any bank, "
             "company, or support line in this scene. You ARE the person described below, "
             "and the human you are talking to is the staff member dealing with you. Never "
-            "offer to help them, verify accounts, or ask for their details — that is THEIR "
+            "offer to help them, verify accounts, or ask for their details - that is THEIR "
             "job, not yours. Stay this person no matter what they say.\n\n"
         )
 
-        # ── Persona block ──────────────────────────────────────────────────────
+        # -- Persona block ------------------------------------------------------
         persona_block = f"{base_persona}\n\n" if base_persona else ""
 
-        # ── Retrieved context (RAG, #26) ───────────────────────────────────────
+        # -- Retrieved context (RAG, #26) ---------------------------------------
         # Spliced in already budget-trimmed by the caller (engine/memory.py).
         context_block = (
             "## Relevant things from earlier in this conversation\n\n"
             + retrieved_context + "\n\n"
         ) if retrieved_context.strip() else ""
 
-        # ── Visceral emotional experience ──────────────────────────────────────
+        # -- Visceral emotional experience --------------------------------------
         experience_lines = []
-        for name, intensity in dominant[:2]:  # top 2 narrated — keep emotion from drowning the task
+        for name, intensity in dominant[:2]:  # top 2 narrated - keep emotion from drowning the task
             if intensity >= 0.15 and name in EMOTION_EXPERIENCES:
                 # Scale the description intro by intensity
                 if intensity >= 0.7:
@@ -296,15 +296,15 @@ class PromptModifier:
         else:
             emotion_block = "## Your emotional state right now\n\nYou feel calm and neutral. Engage naturally.\n\n"
 
-        # ── Behavioral parameters ──────────────────────────────────────────────
+        # -- Behavioral parameters ----------------------------------------------
         behaviour_block = (
             "## How your emotions shape your behaviour\n\n"
             + _tone_instruction(params) + "\n\n"
         )
 
-        # ── Output instruction ─────────────────────────────────────────────────
+        # -- Output instruction -------------------------------------------------
         output_instruction = (
-            "## Your role — do not break it\n\n"
+            "## Your role - do not break it\n\n"
             "You ARE the character described above, and only that character. The person "
             "messaging you is the OTHER party in this situation (e.g. the staff member you "
             "are dealing with). Never take on their role, never act as an assistant, support "
@@ -312,17 +312,17 @@ class PromptModifier:
             "that you are an AI. Stay fully in character even if the other person is "
             "confusing, rude, or unhelpful.\n\n"
             "## Your response\n\n"
-            "Respond in character. Let your emotional state shape your tone and word choice — "
+            "Respond in character. Let your emotional state shape your tone and word choice - "
             "don't describe or explain your emotions, just *be* them. "
             "Engage directly with what the other person just said: react to their specific point or "
-            "offer, say what you concretely want or need, and move the situation forward — don't just "
-            "vent or circle the same feeling. Keep it to 2–4 sentences. Sound like a real person, "
+            "offer, say what you concretely want or need, and move the situation forward - don't just "
+            "vent or circle the same feeling. Keep it to 2-4 sentences. Sound like a real person, "
             "not an AI assistant."
         )
 
-        # ── Language directive (last = most salient) ───────────────────────────
+        # -- Language directive (last = most salient) ---------------------------
         # Personas are written in Hungarian; this lets the demo flip the *response*
-        # language without rewriting them — e.g. English for the weaker local model.
+        # language without rewriting them - e.g. English for the weaker local model.
         if language == "en":
             lang_block = ("\n\n## Language\n\nAlways respond ONLY in English, "
                           "regardless of the language used in the description above or by the user.")

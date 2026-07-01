@@ -31,11 +31,11 @@ class Agent:
     def receive_and_respond(self, incoming_message: str, witness_event: dict | None = None,
                             retrieved_context: str = "", language: str = "hu") -> str:
         """
-        Full pipeline: appraise incoming message → update emotional state →
-        build emotionally-modulated prompt → generate response.
+        Full pipeline: appraise incoming message -> update emotional state ->
+        build emotionally-modulated prompt -> generate response.
 
         witness_event: the appraisal event the *sender* experienced on the
-        previous turn — used to generate empathic emotion deltas independently
+        previous turn - used to generate empathic emotion deltas independently
         of the surface language of their message.
 
         retrieved_context: budget-trimmed RAG context (engine/memory.py) spliced
@@ -45,7 +45,7 @@ class Agent:
         event = self.evaluator.evaluate(incoming_message)
         self.last_event = event
 
-        # 2. Apply OCC rules → emotion deltas (+ witness empathy track)
+        # 2. Apply OCC rules -> emotion deltas (+ witness empathy track)
         deltas = self.appraisal_engine.compute_deltas(event, self.entity, witness_event)
         self.entity.apply_deltas(deltas)
 

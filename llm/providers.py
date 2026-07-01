@@ -1,11 +1,11 @@
 """LLM provider abstraction.
 
-The app makes two kinds of LLM call — the appraisal parse (engine/evaluator.py)
+The app makes two kinds of LLM call - the appraisal parse (engine/evaluator.py)
 and the agent reply (agents/agent.py). Both used to talk to Groq directly. This
 layer lets us swap the backend without touching engine/agent code:
 
-    LLM_PROVIDER=groq    (default)  cloud, smart — for dev + system-prompt tuning
-    LLM_PROVIDER=ollama             local, small — for the offline / live demo
+    LLM_PROVIDER=groq    (default)  cloud, smart - for dev + system-prompt tuning
+    LLM_PROVIDER=ollama             local, small - for the offline / live demo
 
 Both providers expose the same `chat(messages, ...) -> str`. The Groq path is
 byte-identical to the old direct calls, so leaving LLM_PROVIDER unset changes
@@ -88,11 +88,11 @@ class OllamaProvider(LLMProvider):
 # caveat shown to the user (cloud cost vs offline Hungarian quality).
 AVAILABLE_MODELS = [
     {"id": "llama-3.3-70b-versatile", "provider": "groq",
-     "label": "Groq · Llama 3.3 70B", "note": "Cloud · strongest Hungarian"},
+     "label": "Groq - Llama 3.3 70B", "note": "Cloud - strongest Hungarian"},
     {"id": "llama-3.1-8b-instant", "provider": "groq",
-     "label": "Groq · Llama 3.1 8B", "note": "Cloud · fast, lighter"},
+     "label": "Groq - Llama 3.1 8B", "note": "Cloud - fast, lighter"},
     {"id": "qwen2.5:3b", "provider": "ollama",
-     "label": "Ollama · Qwen2.5 3B", "note": "Local/offline · weak Hungarian"},
+     "label": "Ollama - Qwen2.5 3B", "note": "Local/offline - weak Hungarian"},
 ]
 _MODELS_BY_ID = {m["id"]: m for m in AVAILABLE_MODELS}
 
@@ -117,7 +117,7 @@ def get_provider(model: str | None = None, provider: str | None = None) -> LLMPr
 
     `provider` selects the backend explicitly ("groq" / "ollama"); when omitted
     it falls back to the LLM_PROVIDER env var (default: groq). `model` is the
-    backend-specific model name — passed to whichever provider is built, so the
+    backend-specific model name - passed to whichever provider is built, so the
     UI can switch both backend and model in one call (#45).
     """
     name = (provider or os.environ.get("LLM_PROVIDER", "groq")).strip().lower()

@@ -1,5 +1,5 @@
 """
-Emotionist.ai — FastAPI backend.
+Emotionist.ai - FastAPI backend.
 
 A thin HTTP layer over the existing emotion engine. The engine (agents/, engine/,
 entity/, emotions/) is untouched: this server drives one configurable practice-
@@ -27,7 +27,7 @@ from llm import AVAILABLE_MODELS, default_model_id, provider_of
 load_dotenv()
 
 
-# ── Serialization ─────────────────────────────────────────────────────────────
+# -- Serialization -------------------------------------------------------------
 PARAM_KEYS = list(NEUTRAL_PROFILE)
 
 
@@ -47,7 +47,7 @@ def agent_state(agent: Agent) -> dict:
     }
 
 
-# ── API ───────────────────────────────────────────────────────────────────────
+# -- API -----------------------------------------------------------------------
 app = FastAPI(title="Emotionist.ai")
 
 
@@ -71,7 +71,7 @@ async def rate_limit(request: Request, call_next):
         now = time.monotonic()
         recent = [t for t in _hits[ip] if now - t < 60]
         if len(recent) >= _RATE_MAX:
-            return JSONResponse({"error": "Rate limit — slow down a moment."}, status_code=429)
+            return JSONResponse({"error": "Rate limit - slow down a moment."}, status_code=429)
         recent.append(now)
         _hits[ip] = recent
     return await call_next(request)
@@ -81,15 +81,15 @@ def _friendly_llm_error(exc: Exception) -> str:
     """Turn a raw provider exception into a demo-safe message (#18)."""
     msg = str(exc)
     if "api_key" in msg.lower() or "401" in msg:
-        return ("LLM auth failed — your Groq key is missing/expired. "
+        return ("LLM auth failed - your Groq key is missing/expired. "
                 "Add a fresh GROQ_API_KEY to .env, or pick a local (Ollama) model.")
     if "connection" in msg.lower() or "refused" in msg.lower() or "urlopen" in msg.lower():
-        return ("Couldn't reach the model — for local models start it with "
+        return ("Couldn't reach the model - for local models start it with "
                 "`ollama serve` (and pull it); for Groq check your connection.")
     return f"LLM call failed: {msg}"
 
 
-# ── Practice-partner chat (the only mode) ─────────────────────────────────────
+# -- Practice-partner chat (the only mode) -------------------------------------
 SEED_EMOTIONS = ["Joy", "Anger", "Fear", "Shame", "Pride", "Distress",
                  "Gratitude", "Sadness", "Anticipation", "Trust"]
 PERSONALITIES = ["neurotic", "average", "resilient"]
@@ -99,7 +99,7 @@ class ChatSession:
     """One configurable agent the human talks to directly (no witness track).
 
     Two ways to populate it: free-form manual config, or a scenario preset
-    (#13) — picking a practice counterpart overrides name/personality/persona/
+    (#13) - picking a practice counterpart overrides name/personality/persona/
     seeds from agents/personas.py. Each session owns a SessionMemory for RAG (#22).
     """
 
@@ -131,7 +131,7 @@ class ChatSession:
                 personality = "average"
             if reactivity is None:
                 reactivity = REACTIVITY.get(personality, 1.0)
-            # custom agents have no translation — the language directive does the work
+            # custom agents have no translation - the language directive does the work
             self._persona_hu = self._persona_en = persona or ""
             if (seed_emotion and seed_emotion != "None" and seed_intensity > 0):
                 seeds = {seed_emotion: seed_intensity}
@@ -235,7 +235,7 @@ def chat_reset(req: ChatResetReq):
 
 @app.post("/api/chat/language")
 def chat_set_language(req: ChatLangReq):
-    # Switch response language mid-conversation — takes effect on the next message,
+    # Switch response language mid-conversation - takes effect on the next message,
     # no reset (the prompt is rebuilt every turn).
     CHAT.language = req.language if req.language in ("hu", "en") else "hu"
     CHAT._apply_language()
@@ -246,7 +246,7 @@ def chat_set_language(req: ChatLangReq):
 def chat_send(req: ChatSendReq):
     # Only Groq models need a key; local (Ollama) models run offline.
     if provider_of(CHAT.model_id) == "groq" and not os.environ.get("GROQ_API_KEY"):
-        return {"error": "GROQ_API_KEY not set in .env — required for Groq models. "
+        return {"error": "GROQ_API_KEY not set in .env - required for Groq models. "
                          "Pick a local model to run offline."}
     if req.message.strip():
         try:
@@ -256,7 +256,7 @@ def chat_send(req: ChatSendReq):
     return chat_state()
 
 
-# ── Static frontend ───────────────────────────────────────────────────────────
+# -- Static frontend -----------------------------------------------------------
 # Serve the React build (web-dist/) when present; otherwise fall back to the
 # legacy vanilla frontend (web/) so a missing/failed build never breaks the demo.
 _HERE = os.path.dirname(__file__)
@@ -266,11 +266,11 @@ WEB_DIR = _DIST if REACT else os.path.join(_HERE, "web")
 
 
 # The HTML shell must never be cached, or the browser keeps an old build's asset
-# refs after a rebuild (hashed JS/CSS can cache forever — they're content-named).
+# refs after a rebuild (hashed JS/CSS can cache forever - they're content-named).
 _NO_CACHE = {"Cache-Control": "no-store, max-age=0"}
 
 
-# React build → index.html (SPA). Legacy fallback → chat.html (the only view now).
+# React build -> index.html (SPA). Legacy fallback -> chat.html (the only view now).
 _SHELL = "index.html" if REACT else "chat.html"
 
 

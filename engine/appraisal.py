@@ -5,21 +5,21 @@ from entity.entity import Entity
 # Emotion transition rules from emotionTransitions research data.
 # Format: (from_emotion, condition_fn, to_emotion, probability)
 TRANSITION_RULES: list[tuple] = [
-    # Fear → Distress (prolonged, uncertain fear curdles into distress)
+    # Fear -> Distress (prolonged, uncertain fear curdles into distress)
     ("Fear", lambda e: e.is_active and e.time_active > 3, "Distress", 0.75),
-    # Shame → Anger (blame externalized)
+    # Shame -> Anger (blame externalized)
     ("Shame", lambda e: e.is_active and e.intensity > 0.4, "Anger", 0.60),
-    # Shame → Sadness (internalized + chronic)
+    # Shame -> Sadness (internalized + chronic)
     ("Shame", lambda e: e.is_active and e.time_active > 5, "Sadness", 0.55),
-    # Anger → Guilt (harm caused to liked agent)
+    # Anger -> Guilt (harm caused to liked agent)
     ("Anger", lambda e: e.is_active and e.intensity > 0.6, "Guilt", 0.50),
-    # Distress → Sadness (coping failed + time)
+    # Distress -> Sadness (coping failed + time)
     ("Distress", lambda e: e.is_active and e.time_active > 4, "Sadness", 0.80),
-    # Hope → Anticipation (likelihood increases)
+    # Hope -> Anticipation (likelihood increases)
     ("Hope", lambda e: e.is_active and e.intensity > 0.5, "Anticipation", 0.70),
-    # Disappointment → Resentment (other-agency)
+    # Disappointment -> Resentment (other-agency)
     ("Disappointment", lambda e: e.is_active and e.intensity > 0.4, "Resentment", 0.55),
-    # Joy → Gratitude (other-agency identified)
+    # Joy -> Gratitude (other-agency identified)
     ("Joy", lambda e: e.is_active and e.intensity > 0.5, "Gratitude", 0.65),
 ]
 
@@ -38,7 +38,7 @@ REACTIVITY = {
 class OCCAppraisalEngine:
     """Maps structured appraisal events to emotion intensity deltas using OCC rules."""
 
-    # ── De-escalation / damping (flaw fix: emotions too sticky, no fast recovery) ──
+    # -- De-escalation / damping (flaw fix: emotions too sticky, no fast recovery) --
     # Reassuring input actively *soothes* active negative emotions instead of only
     # adding positive ones and waiting for slow decay. Kept partial + capped so it's
     # earned: one nice line after something horrible won't erase real anger, and a
@@ -158,13 +158,13 @@ class OCCAppraisalEngine:
         elif et == "blame_of_other":
             deltas["Reproach"] = sev * 0.6
             if self_directed:
-                # other's blameworthy action caused harm to self → Anger
+                # other's blameworthy action caused harm to self -> Anger
                 deltas["Anger"] = sev * 0.7
 
         elif et == "neutral":
             # Rumination / persistence injection: grief and fear sustain themselves
             # without needing a new trigger. Quiet turns in a grief scenario get
-            # tagged neutral — this prevents the emotional state from starving.
+            # tagged neutral - this prevents the emotional state from starving.
             distress = entity.emotions.get("Distress")
             fear = entity.emotions.get("Fear")
             sadness = entity.emotions.get("Sadness")
@@ -175,7 +175,7 @@ class OCCAppraisalEngine:
             if sadness and sadness.intensity > 0.4:
                 deltas["Sadness"] = 0.04
 
-        # ── Witness / empathy track ───────────────────────────────────────────
+        # -- Witness / empathy track -------------------------------------------
         # Apply vicarious emotion deltas from what this agent *witnessed* the
         # other agent experience, regardless of what the other agent said.
         # Scaled at ~0.55 of the witnessed severity so witnessing < experiencing.
@@ -187,7 +187,7 @@ class OCCAppraisalEngine:
             ws = wsev * 0.55  # witness scale factor
 
             # Don't fire witness Pity if this agent is already the primary sufferer
-            # of the same class of event — the fired agent doesn't pity the person
+            # of the same class of event - the fired agent doesn't pity the person
             # offering support.
             agent_is_sufferer = (
                 et in ("bad_news", "failure", "threat") and
@@ -204,7 +204,7 @@ class OCCAppraisalEngine:
                 deltas["Guilt"] = deltas.get("Guilt", 0) + ws * 0.20
 
             elif w_self and wet == "insult" and w_intent:
-                # Witnessing someone get insulted — protective reproach
+                # Witnessing someone get insulted - protective reproach
                 deltas["Pity"] = deltas.get("Pity", 0) + ws * 0.7
                 deltas["Reproach"] = deltas.get("Reproach", 0) + ws * 0.5
 
@@ -234,7 +234,7 @@ class OCCAppraisalEngine:
 
 
 if __name__ == "__main__":
-    # ponytail: self-check — de-escalation is real, partial, and not manipulable.
+    # ponytail: self-check - de-escalation is real, partial, and not manipulable.
     eng = OCCAppraisalEngine()
     ent = Entity("Test", "average")
     insult = {"event_type": "insult", "severity": 0.85, "directed_at_self": True, "intentional": True}
@@ -252,5 +252,5 @@ if __name__ == "__main__":
     ent.apply_deltas(eng.compute_deltas(insult, ent))
     assert ent.emotions["Anger"].intensity > soothed, "a fresh insult must re-spike anger"
 
-    print(f"OK — anger spiked {spiked:.2f} → soothed {soothed:.2f} → re-spiked "
+    print(f"OK - anger spiked {spiked:.2f} -> soothed {soothed:.2f} -> re-spiked "
           f"{ent.emotions['Anger'].intensity:.2f} (earned calm, still reactive)")

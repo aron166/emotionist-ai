@@ -1,5 +1,5 @@
 """
-Tests for server.py — the new FastAPI backend added in this PR.
+Tests for server.py - the new FastAPI backend added in this PR.
 
 Covers:
   - Game class: __init__, reset(), step()
@@ -19,7 +19,7 @@ from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+# -- Fixtures ------------------------------------------------------------------
 
 @pytest.fixture(scope="session")
 def client():
@@ -42,7 +42,7 @@ def fresh_chat():
     return ChatSession()
 
 
-# ── Game class ────────────────────────────────────────────────────────────────
+# -- Game class ----------------------------------------------------------------
 
 class TestGameInit:
     def test_default_topic_is_cancelled_project(self, fresh_game):
@@ -176,7 +176,7 @@ class TestGameStep:
         assert kwargs.get("witness_event") == {"event_type": "compliment", "severity": 0.8}
 
 
-# ── ChatSession class ─────────────────────────────────────────────────────────
+# -- ChatSession class ---------------------------------------------------------
 
 class TestChatSessionInit:
     def test_default_agent_name_is_morgan(self, fresh_chat):
@@ -236,7 +236,7 @@ class TestChatSessionReset:
 
     def test_reset_empty_persona_uses_empty_string(self, fresh_chat):
         fresh_chat.reset("Morgan", "average", 1.0, "")
-        # Agent should be created with "" persona — no crash
+        # Agent should be created with "" persona - no crash
         assert fresh_chat.agent.base_persona == ""
 
 
@@ -277,7 +277,7 @@ class TestChatSessionSend:
         assert len(fresh_chat.messages) == 4
 
 
-# ── Serialization functions ───────────────────────────────────────────────────
+# -- Serialization functions ---------------------------------------------------
 
 class TestAgentState:
     def test_agent_state_has_required_keys(self, fresh_game):
@@ -385,7 +385,7 @@ class TestFullState:
         assert state["reactivity_ref"] == REACTIVITY
 
 
-# ── API endpoints ─────────────────────────────────────────────────────────────
+# -- API endpoints -------------------------------------------------------------
 
 class TestApiState:
     def test_get_state_returns_200(self, client):
@@ -568,7 +568,7 @@ class TestApiChatSend:
                 mock_send.assert_called_once_with("hello")
 
 
-# ── STARTER_TOPICS constant ───────────────────────────────────────────────────
+# -- STARTER_TOPICS constant ---------------------------------------------------
 
 class TestStarterTopics:
     def test_all_five_topics_present(self):
@@ -594,7 +594,7 @@ class TestStarterTopics:
         assert speaker == "Sam"
 
 
-# ── SEED_EMOTIONS and PERSONALITIES constants ─────────────────────────────────
+# -- SEED_EMOTIONS and PERSONALITIES constants ---------------------------------
 
 class TestConstants:
     def test_seed_emotions_list(self):

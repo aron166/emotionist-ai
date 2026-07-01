@@ -1,10 +1,10 @@
-/* ════════════════════════════════════════════════════════════════════════════
-   Emotionist.ai — PREMIUM THEME LAYER  (high-end-visual-design skill)
+/* ============================================================================
+   Emotionist.ai - PREMIUM THEME LAYER  (high-end-visual-design skill)
    Loaded last, on top of styles.css + polish.css. Keeps the dark/violet identity;
    elevates execution to an enterprise "expensive SaaS" feel. Remove this single
    import in main.jsx to revert entirely.
    Vibe: Ethereal Glass (OLED black, violet mesh, machined-glass cards, hairlines).
-   ════════════════════════════════════════════════════════════════════════════ */
+   ============================================================================ */
 
 :root {
   --void: #060609;                 /* deeper OLED base */
@@ -28,7 +28,7 @@
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* ── Atmosphere: richer violet mesh, three orbs, slow drift ─────────────────── */
+/* -- Atmosphere: richer violet mesh, three orbs, slow drift ------------------- */
 .glow {
   background:
     radial-gradient(120% 80% at 86% -14%, rgba(124, 77, 255, 0.26) 0%, rgba(124, 77, 255, 0) 55%),
@@ -39,7 +39,7 @@
 @keyframes glow-drift { from { transform: translateY(0) scale(1); } to { transform: translateY(-2%) scale(1.04); } }
 .grain { opacity: 0.045; }
 
-/* ── Hero header ────────────────────────────────────────────────────────────── */
+/* -- Hero header -------------------------------------------------------------- */
 .topbar { position: relative; padding: 2.6rem 2.4rem 0; }
 .hero { display: flex; flex-direction: column; gap: 0.6rem; max-width: 720px; }
 .eyebrow {
@@ -65,7 +65,7 @@
 
 .wrap { padding-top: 2rem; }
 
-/* ── Machined-glass cards (double-bezel) ───────────────────────────────────── */
+/* -- Machined-glass cards (double-bezel) ------------------------------------- */
 .panel {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0) 22%),
@@ -80,7 +80,7 @@
 .agent-name { letter-spacing: -0.01em; }
 .micro-label::before { width: 16px; background: var(--grad-violet); }
 
-/* ── Buttons: pill, gradient, inset highlight, magnetic press ───────────────── */
+/* -- Buttons: pill, gradient, inset highlight, magnetic press ----------------- */
 .btn {
   border-radius: 12px; padding: 11px 22px;
   background: rgba(255, 255, 255, 0.04);
@@ -98,10 +98,10 @@
 }
 .btn-primary:hover { background: var(--grad-violet); filter: brightness(1.1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 16px 40px -12px rgba(124, 77, 255, 0.9); }
 
-/* ── Pills / badges: inset highlight ───────────────────────────────────────── */
+/* -- Pills / badges: inset highlight ----------------------------------------- */
 .pill, .badge, .mini-btn, .ev { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
 
-/* ── Fields: glass surface, inset, violet focus ring ───────────────────────── */
+/* -- Fields: glass surface, inset, violet focus ring ------------------------- */
 .field input[type="text"], .field textarea, .field select, .seed-row select, .inject input, select#topic {
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid var(--hairline);
@@ -113,7 +113,7 @@
   outline: none; border-color: var(--violet); box-shadow: var(--ring); background: rgba(124, 77, 255, 0.06);
 }
 
-/* ── Chat bubbles: depth + inset highlight ─────────────────────────────────── */
+/* -- Chat bubbles: depth + inset highlight ----------------------------------- */
 .bubble {
   border-radius: 16px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)), var(--surface);
@@ -121,25 +121,25 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 18px 36px -30px rgba(0, 0, 0, 0.9);
 }
 
-/* ── Emotion bars: glassy track + glossy fill ──────────────────────────────── */
+/* -- Emotion bars: glassy track + glossy fill -------------------------------- */
 .bar-track { height: 7px; background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5); }
 .bar-fill { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 14px -2px rgba(255, 255, 255, 0.4); }
 
-/* ── Opener: premium left-accent card ──────────────────────────────────────── */
+/* -- Opener: premium left-accent card ---------------------------------------- */
 .opener {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)), var(--surface);
   border: 1px solid var(--hairline); border-left: 2px solid var(--amber); border-radius: 14px;
   box-shadow: var(--elev-card);
 }
 
-/* ── Range thumb glow ──────────────────────────────────────────────────────── */
+/* -- Range thumb glow -------------------------------------------------------- */
 input[type="range"]::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(124, 77, 255, 0.16), 0 0 12px -2px var(--violet); }
 
-/* ── Message / RAG entry motion ────────────────────────────────────────────── */
+/* -- Message / RAG entry motion ---------------------------------------------- */
 @keyframes msg-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .msg, .rag-row { animation: msg-in 0.5s var(--ease-spring) both; }
 
-/* ── Scenario cards (replaces the dropdown) ────────────────────────────────── */
+/* -- Scenario cards (replaces the dropdown) ---------------------------------- */
 .scenario-cards { display: flex; flex-direction: column; gap: 9px; margin-top: 0.5rem; }
 .scn-card {
   display: flex; flex-direction: column; gap: 4px; text-align: left; width: 100%;
@@ -165,7 +165,7 @@ input[type="range"]::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(124, 77, 
 .scn-name { font-weight: 600; font-size: 0.92rem; color: #fff; }
 .scn-sit { font-size: 0.72rem; line-height: 1.4; color: var(--muted); }
 
-/* ── Nicer dropdowns (closed state) — bigger arrow, hover, glow ─────────────── */
+/* -- Nicer dropdowns (closed state) - bigger arrow, hover, glow --------------- */
 .field select, .seed-row select, select#topic {
   cursor: pointer; padding-top: 11px; padding-bottom: 11px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1.5l6 6 6-6' stroke='%23a98bff' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -174,7 +174,7 @@ input[type="range"]::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(124, 77, 
 .field select:hover, .seed-row select:hover, select#topic:hover { border-color: rgba(124, 77, 255, 0.45); background-color: rgba(124, 77, 255, 0.05); }
 .field select option, .seed-row select option { background: #15151b; color: var(--text); }
 
-/* ── "Your role" cue above the conversation ────────────────────────────────── */
+/* -- "Your role" cue above the conversation ---------------------------------- */
 .role-cue {
   display: flex; flex-direction: column; gap: 7px; margin-bottom: 0.9rem;
   padding: 11px 14px; border-radius: 12px; font-size: 0.82rem; color: #cdc7e8;
@@ -192,7 +192,7 @@ input[type="range"]::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(124, 77, 
 }
 .role-cue-tag.alt { color: #7dd3e0; background: rgba(34, 211, 238, 0.14); border-color: rgba(34, 211, 238, 0.38); }
 
-/* ── Language toggle (segmented) ───────────────────────────────────────────── */
+/* -- Language toggle (segmented) --------------------------------------------- */
 .lang-toggle {
   display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 0.4rem;
   background: rgba(255, 255, 255, 0.03); border: 1px solid var(--hairline);
@@ -211,7 +211,7 @@ input[type="range"]::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(124, 77, 
 }
 .lang-btn:disabled { cursor: not-allowed; opacity: 0.7; }
 
-/* ── Glow pulses on active / live elements ─────────────────────────────────── */
+/* -- Glow pulses on active / live elements ----------------------------------- */
 .thinking span { background: var(--violet-bright); box-shadow: 0 0 10px var(--violet-bright); }
 .pill { background: rgba(124, 77, 255, 0.14); animation: pill-pulse 2.6s var(--ease-spring) infinite; }
 @keyframes pill-pulse {

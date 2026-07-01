@@ -1,4 +1,4 @@
-// ── Shared helpers for both views ───────────────────────────────────────────
+// -- Shared helpers for both views -------------------------------------------
 const EMOTION_COLORS = {
   Joy: "#f59e0b", Hope: "#10b981", Satisfaction: "#84cc16", Relief: "#06b6d4",
   HappyFor: "#f97316", Pride: "#d97706", Admiration: "#0891b2", Love: "#ec4899",
@@ -34,7 +34,7 @@ function escapeHtml(s) {
 
 function renderEmotions(el, emotions) {
   if (!emotions || !emotions.length) {
-    el.innerHTML = '<div class="calm">— calm —</div>';
+    el.innerHTML = '<div class="calm">- calm -</div>';
     return;
   }
   el.innerHTML = emotions
@@ -73,7 +73,7 @@ function eventBadge(ev) {
   const flags = [];
   if (ev.directed_at_self) flags.push("self");
   if (ev.intentional) flags.push("intentional");
-  const flagStr = flags.length ? " · " + flags.join(" · ") : "";
+  const flagStr = flags.length ? " - " + flags.join(" - ") : "";
   const sev = (ev.severity ?? 0).toFixed(2);
-  return `<span class="ev"><span class="ev-dot" style="background:${color}"></span>${escapeHtml(ev.event_type)} · sev ${sev}${flagStr}</span>`;
+  return `<span class="ev"><span class="ev-dot" style="background:${color}"></span>${escapeHtml(ev.event_type)} - sev ${sev}${flagStr}</span>`;
 }

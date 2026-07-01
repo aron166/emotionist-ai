@@ -2,7 +2,7 @@ import { EMOTION_COLORS } from "../api.js";
 
 export default function EmotionBars({ emotions }) {
   if (!emotions || !emotions.length) {
-    return <div className="calm">— calm —</div>;
+    return <div className="calm">- calm -</div>;
   }
   return (
     <>

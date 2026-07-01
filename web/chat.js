@@ -1,4 +1,4 @@
-// ── Practice-partner chat view ──────────────────────────────────────────────
+// -- Practice-partner chat view ----------------------------------------------
 // Shared helpers come from common.js.
 
 let busy = false;
@@ -8,7 +8,7 @@ let selectsReady = false;
 function renderMessages(messages) {
   const el = $("chat");
   if (!messages || !messages.length) {
-    el.innerHTML = '<div class="empty">Start the conversation — say the first thing you\'d say to them.</div>';
+    el.innerHTML = '<div class="empty">Start the conversation - say the first thing you\'d say to them.</div>';
     return;
   }
   el.innerHTML = messages
@@ -27,10 +27,10 @@ function renderMessages(messages) {
 }
 
 function renderRetrieved(hits, backend) {
-  $("rag-backend").textContent = backend ? `· ${backend}` : "";
+  $("rag-backend").textContent = backend ? `- ${backend}` : "";
   const el = $("retrieved");
   if (!hits || !hits.length) {
-    el.innerHTML = '<div class="calm">— nothing retrieved yet —</div>';
+    el.innerHTML = '<div class="calm">- nothing retrieved yet -</div>';
     return;
   }
   el.innerHTML = hits
@@ -49,9 +49,9 @@ function render(state) {
     seed.add(new Option("None", "None"));
     state.seed_options.forEach((s) => seed.add(new Option(s, s)));
 
-    // scenario picker (#14): "— Custom —" + presets
+    // scenario picker (#14): "- Custom -" + presets
     const ssel = $("cfg-scenario");
-    ssel.add(new Option("— Custom agent —", ""));
+    ssel.add(new Option("- Custom agent -", ""));
     state.scenarios.forEach((s) => ssel.add(new Option(s.display_name, s.id)));
 
     // model picker (#45): disable unavailable (Groq w/o key)
@@ -73,7 +73,7 @@ function render(state) {
   $("cfg-model-note").textContent = md ? md.note : "";
 
   $("cfg-rx-ref").textContent =
-    `resilient ${state.reactivity_ref.resilient} · average ${state.reactivity_ref.average} · neurotic ${state.reactivity_ref.neurotic}`;
+    `resilient ${state.reactivity_ref.resilient} - average ${state.reactivity_ref.average} - neurotic ${state.reactivity_ref.neurotic}`;
 
   // live state panel
   $("agent-pill").textContent = a.name;
@@ -83,7 +83,7 @@ function render(state) {
   badge.className = "badge badge-" + a.personality;
   renderEmotions($("emo"), a.emotions);
   renderParams($("par"), a.params);
-  $("decay").textContent = `decay λ ${a.decay} · reactivity ${a.reactivity}`;
+  $("decay").textContent = `decay lambda ${a.decay} - reactivity ${a.reactivity}`;
   $("sysprompt").textContent = a.system_prompt;
   renderRetrieved(state.retrieved, state.retrieval_backend);
 
@@ -99,7 +99,7 @@ function setBusy(on) {
     const node = document.createElement("div");
     node.className = "msg alex";
     node.id = "thinking-node";
-    node.innerHTML = `<div class="bubble"><span class="thinking"><span></span><span></span><span></span></span></div><div class="meta">Counterpart · thinking</div>`;
+    node.innerHTML = `<div class="bubble"><span class="thinking"><span></span><span></span><span></span></span></div><div class="meta">Counterpart - thinking</div>`;
     chat.appendChild(node);
     chat.scrollTop = chat.scrollHeight;
   } else {
@@ -108,7 +108,7 @@ function setBusy(on) {
   }
 }
 
-// ── Actions ─────────────────────────────────────────────────────────────────
+// -- Actions -----------------------------------------------------------------
 // One reset call that respects whichever mode is active: a scenario id (preset)
 // or the custom fields. `model_id` always comes from the model picker.
 async function resetAgent({ scenario_id, custom }) {
@@ -171,7 +171,7 @@ async function sendMessage() {
   }
 }
 
-// ── Wire up ───────────────────────────────────────────────────────────────────
+// -- Wire up -------------------------------------------------------------------
 $("apply").addEventListener("click", () => resetAgent({ custom: true }));
 $("cfg-scenario").addEventListener("change", (e) => resetAgent({ scenario_id: e.target.value || null }));
 $("cfg-model").addEventListener("change", () => resetAgent({}));
@@ -184,7 +184,7 @@ $("sp-toggle").addEventListener("click", () => {
   $("sp-toggle").textContent = spOpen ? "hide" : "show";
 });
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
+// -- Boot ----------------------------------------------------------------------
 (async () => {
   const state = await api("/api/chat/state");
   render(state);

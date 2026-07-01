@@ -1,4 +1,4 @@
-/* React-port polish — additive refinements over the existing design system.
+/* React-port polish - additive refinements over the existing design system.
    Preserves the dark/violet identity; just adds spring motion + softer depth. */
 
 :root { --ease-spring: cubic-bezier(0.32, 0.72, 0, 1); }
@@ -25,7 +25,7 @@
 @keyframes msg-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .msg, .rag-row { animation: msg-in 0.45s var(--ease-spring) both; }
 
-/* Panels lift subtly on hover — depth without heavy shadows. */
+/* Panels lift subtly on hover - depth without heavy shadows. */
 .panel { transition: border-color 0.4s var(--ease-spring), transform 0.4s var(--ease-spring); }
 .panel:hover { transform: translateY(-2px); }
 

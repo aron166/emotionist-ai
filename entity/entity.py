@@ -15,51 +15,51 @@ _PERSONALITY_SCORES = {"neurotic": -1.0, "average": 0.0, "resilient": 1.0}
 # Keep for UI reference / backwards compat
 _DECAY_RATES_REF = {"neurotic": 0.05, "average": 0.12, "resilient": 0.22}
 
-# Per-emotion decay modifiers — applied on top of the personality-derived base rate.
+# Per-emotion decay modifiers - applied on top of the personality-derived base rate.
 # Values < 1.0 make that emotion stickier (slower decay) regardless of personality.
 # Values > 1.0 make it more fleeting. Personality still matters; this shifts the floor.
 # Exported so the UI can display it.
 DECAY_CATEGORY_MODIFIER: dict[str, float] = {
-    # Grief / loss — intrinsically sticky. Even resilient agents grieve.
+    # Grief / loss - intrinsically sticky. Even resilient agents grieve.
     "Distress":      0.30,
     "Sadness":       0.30,
     "FearsConfirmed":0.30,
     "Disappointment":0.40,
 
-    # Social / self-conscious — tied to identity, linger in memory.
+    # Social / self-conscious - tied to identity, linger in memory.
     "Shame":         0.55,
     "Guilt":         0.55,
     "Remorse":       0.50,
     "Pride":         0.60,
     "Envy":          0.65,
 
-    # Bond / relationship — very stable, change slowly.
+    # Bond / relationship - very stable, change slowly.
     "Love":          0.40,
     "Hate":          0.40,
     "Trust":         0.50,
 
-    # Anxiety — slightly stickier than neutral conflict emotions.
+    # Anxiety - slightly stickier than neutral conflict emotions.
     "Fear":          0.80,
     "Resentment":    0.60,
 
-    # Fleeting — transient by nature, decay faster than personality baseline.
+    # Fleeting - transient by nature, decay faster than personality baseline.
     "Surprise":      1.50,
     "Relief":        1.40,
 
-    # Everything else (Joy, Anger, Hope, Pity, Reproach, etc.) uses 1.0 — no entry needed.
+    # Everything else (Joy, Anger, Hope, Pity, Reproach, etc.) uses 1.0 - no entry needed.
 }
 
 
 def _score_to_decay(score: float) -> float:
-    """Map personality_score [-1, +1] → decay rate [0.05, 0.22].
+    """Map personality_score [-1, +1] -> decay rate [0.05, 0.22].
     Piecewise linear through the three research anchor points:
-      -1.0 → 0.05 (neurotic), 0.0 → 0.12 (average), +1.0 → 0.22 (resilient)
+      -1.0 -> 0.05 (neurotic), 0.0 -> 0.12 (average), +1.0 -> 0.22 (resilient)
     """
     score = max(-1.0, min(1.0, score))
     if score <= 0:
-        return 0.05 + (score + 1.0) * 0.07   # 0.05 … 0.12
+        return 0.05 + (score + 1.0) * 0.07   # 0.05 ... 0.12
     else:
-        return 0.12 + score * 0.10            # 0.12 … 0.22
+        return 0.12 + score * 0.10            # 0.12 ... 0.22
 
 
 class Entity:

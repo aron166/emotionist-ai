@@ -53,13 +53,13 @@ class Hate(Emotion):
 
 
 class Remorse(Emotion):
-    """Compound: Shame + Distress (own blameworthy action → undesirable event)."""
+    """Compound: Shame + Distress (own blameworthy action -> undesirable event)."""
     def __init__(self, decay_rate: float):
         super().__init__("Remorse", -1, decay_rate)
 
 
 class Anger(Emotion):
-    """Compound: Reproach + Distress (other's action → undesirable event for self)."""
+    """Compound: Reproach + Distress (other's action -> undesirable event for self)."""
     def __init__(self, decay_rate: float):
         super().__init__("Anger", -1, decay_rate)
 

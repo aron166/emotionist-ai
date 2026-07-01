@@ -5,14 +5,14 @@ set -euo pipefail
 PORT="${PORT:-8000}"
 
 command -v cloudflared >/dev/null || {
-  echo "✗ cloudflared not installed. Get it: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" >&2
+  echo "x cloudflared not installed. Get it: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" >&2
   exit 1
 }
 
 curl -fsS "http://127.0.0.1:$PORT/api/chat/state" >/dev/null 2>&1 || {
-  echo "✗ App not responding on http://127.0.0.1:$PORT — start it first: ./run.sh" >&2
+  echo "x App not responding on http://127.0.0.1:$PORT - start it first: ./run.sh" >&2
   exit 1
 }
 
-echo "▸ Opening public tunnel to http://127.0.0.1:$PORT (Ctrl-C to stop)…"
+echo "> Opening public tunnel to http://127.0.0.1:$PORT (Ctrl-C to stop)..."
 exec cloudflared tunnel --url "http://127.0.0.1:$PORT"

@@ -1,12 +1,12 @@
-"""Scenario personas — the *counterparts you practice against* (#11, #12).
+"""Scenario personas - the *counterparts you practice against* (#11, #12).
 
 A `ScenarioPersona` is a recipe for a whole `Agent`: who the character is, how
 emotionally reactive they are, and which emotions they start with. The Chat view
 builds an `Agent` from one of these so the user can rehearse a hard conversation
-(an angry customer, a defensive employee…) against a believable, mood-persisting
+(an angry customer, a defensive employee...) against a believable, mood-persisting
 counterpart.
 
-This module is pure data + tiny lookup helpers — no engine logic lives here.
+This module is pure data + tiny lookup helpers - no engine logic lives here.
 Personas are written in Hungarian for the OTP bank demo.
 """
 from __future__ import annotations
@@ -17,8 +17,8 @@ from dataclasses import dataclass, field
 @dataclass
 class ScenarioPersona:
     """One practice counterpart. `personality_score` follows the Entity convention
-    ([-1 neurotic … +1 resilient]); `seed_emotions` maps emotion name → starting
-    intensity (0–1). `category` groups scenarios in the UI."""
+    ([-1 neurotic ... +1 resilient]); `seed_emotions` maps emotion name -> starting
+    intensity (0-1). `category` groups scenarios in the UI."""
 
     id: str
     display_name: str          # shown in the picker, e.g. "Dühös ügyfél"
@@ -28,7 +28,7 @@ class ScenarioPersona:
     personality_score: float
     reactivity: float
     base_persona: str          # Hungarian (default demo language)
-    base_persona_en: str = ""  # English variant — used when the UI language is English
+    base_persona_en: str = ""  # English variant - used when the UI language is English
     your_role: str = ""        # what the HUMAN plays + their goal (shown in the UI)
     seed_emotions: dict[str, float] = field(default_factory=dict)
 
@@ -49,7 +49,7 @@ def _score_to_label(score: float) -> str:
     return "average"
 
 
-# ── The practice counterparts (#12) ──────────────────────────────────────────
+# -- The practice counterparts (#12) ------------------------------------------
 SCENARIOS: dict[str, ScenarioPersona] = {
     "angry_customer": ScenarioPersona(
         id="angry_customer",
@@ -74,14 +74,14 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "patience for excuses. If the agent truly listens and gives concrete help, you "
             "gradually calm down."
         ),
-        your_role="You're the bank agent — de-escalate the customer and resolve the wrongful card block.",
+        your_role="You're the bank agent - de-escalate the customer and resolve the wrongful card block.",
         seed_emotions={"Anger": 0.6, "Distress": 0.4},
     ),
     "fraud_victim": ScenarioPersona(
         id="fraud_victim",
         display_name="Csalás áldozata",
         role="panicked victim of bank fraud",
-        situation="Pénzt loptak a számlájáról — pánikol és fél.",
+        situation="Pénzt loptak a számlájáról - pánikol és fél.",
         category="customer_support",
         personality_score=-0.7,
         reactivity=1.4,
@@ -99,7 +99,7 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "speak in English, fast and flustered, with many questions. You need calm, "
             "firm, empathetic guidance to settle down."
         ),
-        your_role="You're the bank agent — reassure the panicked fraud victim and guide the next steps.",
+        your_role="You're the bank agent - reassure the panicked fraud victim and guide the next steps.",
         seed_emotions={"Fear": 0.6, "Distress": 0.5},
     ),
     "defensive_employee": ScenarioPersona(
@@ -122,14 +122,14 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "in English, defensively, sometimes offended. If your manager is specific, "
             "objective and respectful, you are willing to slowly acknowledge your mistakes."
         ),
-        your_role="You're the manager — give honest feedback and get the employee to take it on board.",
+        your_role="You're the manager - give honest feedback and get the employee to take it on board.",
         seed_emotions={"Reproach": 0.4, "Shame": 0.3},
     ),
     "declined_loan": ScenarioPersona(
         id="declined_loan",
         display_name="Elutasított hiteligénylő",
         role="calm but stubborn customer whose loan was rejected",
-        situation="Hitelkérelmét elutasították — higgadt, de kitartóan vitatkozik.",
+        situation="Hitelkérelmét elutasították - higgadt, de kitartóan vitatkozik.",
         category="customer_support",
         personality_score=0.7,       # resilient: stays cool, hard to rattle
         reactivity=0.8,
@@ -145,7 +145,7 @@ SCENARIOS: dict[str, ScenarioPersona] = {
             "speak in English, politely but firmly. You won't be brushed off with generic "
             "answers; you expect logical reasoning."
         ),
-        your_role="You're the bank agent — explain the rejection clearly and hold your ground calmly.",
+        your_role="You're the bank agent - explain the rejection clearly and hold your ground calmly.",
         seed_emotions={"Reproach": 0.3},
     ),
 }
@@ -154,7 +154,7 @@ DEFAULT_SCENARIO_ID = "angry_customer"
 
 
 def get_scenario(scenario_id: str | None) -> ScenarioPersona | None:
-    """Look up a persona by id (None / unknown → None, caller decides fallback)."""
+    """Look up a persona by id (None / unknown -> None, caller decides fallback)."""
     if not scenario_id:
         return None
     return SCENARIOS.get(scenario_id)
@@ -166,7 +166,7 @@ def scenario_label(persona: ScenarioPersona) -> str:
 
 
 if __name__ == "__main__":
-    # ponytail: smoke check — registry imports, presets are well-formed.
+    # ponytail: smoke check - registry imports, presets are well-formed.
     assert SCENARIOS, "no scenarios defined"
     for sid, p in SCENARIOS.items():
         assert p.id == sid, f"id mismatch: {sid}"
@@ -175,5 +175,5 @@ if __name__ == "__main__":
         assert scenario_label(p) in ("neurotic", "average", "resilient")
         for emo, val in p.seed_emotions.items():
             assert 0.0 <= val <= 1.0, f"{sid}/{emo} intensity out of range"
-    print(f"OK — {len(SCENARIOS)} scenarios:",
+    print(f"OK - {len(SCENARIOS)} scenarios:",
           ", ".join(f"{p.display_name} ({scenario_label(p)})" for p in SCENARIOS.values()))

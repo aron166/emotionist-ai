@@ -12,7 +12,7 @@ Rules:
 - directed_at_self: true only if the event directly affects the listener's situation, reputation, or wellbeing. NOT true just because someone is talking to them.
 - intentional: true if a person deliberately caused the event (not accidents or circumstances)
 - severity: 0.0-0.2 = minor, 0.3-0.5 = moderate, 0.6-0.8 = significant, 0.9-1.0 = severe
-- Use "neutral" when the message is processing, thinking out loud, or transitional — even if the topic is heavy
+- Use "neutral" when the message is processing, thinking out loud, or transitional - even if the topic is heavy
 
 Event type definitions:
 - bad_news: listener learns of something negative happening TO THEM specifically
@@ -62,7 +62,7 @@ Message: "Let's just walk and see where we end up."
 
 Respond ONLY with the JSON object, no explanation."""
 
-# Returned when the LLM response cannot be parsed — a low-severity neutral
+# Returned when the LLM response cannot be parsed - a low-severity neutral
 # event leaves the agent's emotional state effectively untouched.
 FALLBACK_EVENT = {
     "event_type": "neutral",

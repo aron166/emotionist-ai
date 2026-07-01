@@ -1,8 +1,8 @@
 """
-Tests for engine/appraisal.py — covering the changes made in this PR:
+Tests for engine/appraisal.py - covering the changes made in this PR:
   - Witness empathy condition: "fears_confirmed" removed from the triggering set
   - apply_transitions() no longer wraps condition checks in try/except
-  - Emotion transition rules (Fear→Distress, Shame→Anger, etc.)
+  - Emotion transition rules (Fear->Distress, Shame->Anger, etc.)
   - OCCAppraisalEngine.compute_deltas() main event paths
 """
 
@@ -14,7 +14,7 @@ from entity.entity import Entity
 from engine.appraisal import OCCAppraisalEngine, REACTIVITY, _transition_rules
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+# -- Helpers --------------------------------------------------------------------
 
 def make_entity(personality="average", reactivity=1.0):
     return Entity("Tester", personality, reactivity=reactivity)
@@ -29,7 +29,7 @@ def make_event(event_type, severity=0.8, directed_at_self=True, intentional=True
     }
 
 
-# ── REACTIVITY constants ────────────────────────────────────────────────────────
+# -- REACTIVITY constants --------------------------------------------------------
 
 class TestReactivity:
     def test_neurotic_is_highest(self):
@@ -45,7 +45,7 @@ class TestReactivity:
         assert set(REACTIVITY.keys()) == {"neurotic", "average", "resilient"}
 
 
-# ── OCCAppraisalEngine.compute_deltas ─────────────────────────────────────────
+# -- OCCAppraisalEngine.compute_deltas -----------------------------------------
 
 class TestComputeDeltasBasicEvents:
     def setup_method(self):
@@ -217,7 +217,7 @@ class TestComputeDeltasBasicEvents:
         assert len(deltas) == 0
 
 
-# ── Reactivity scaling ─────────────────────────────────────────────────────────
+# -- Reactivity scaling ---------------------------------------------------------
 
 class TestDeltaReactivityScaling:
     def setup_method(self):
@@ -246,7 +246,7 @@ class TestDeltaReactivityScaling:
             assert v == 0.0
 
 
-# ── Witness / empathy track ────────────────────────────────────────────────────
+# -- Witness / empathy track ----------------------------------------------------
 
 class TestWitnessEmpathy:
     def setup_method(self):
@@ -339,7 +339,7 @@ class TestWitnessEmpathy:
         # With witness_event=None, no witness track fires
         event = make_event("neutral", severity=0.0)
         deltas = self.engine.compute_deltas(event, self.entity, witness_event=None)
-        # Neutral + no emotions active → empty deltas
+        # Neutral + no emotions active -> empty deltas
         assert deltas == {}
 
     def test_witness_not_directed_at_self_does_not_trigger_empathy(self):
@@ -357,7 +357,7 @@ class TestWitnessEmpathy:
         assert abs(deltas.get("Pity", 0) - expected_pity) < 1e-9
 
 
-# ── apply_transitions ─────────────────────────────────────────────────────────
+# -- apply_transitions ---------------------------------------------------------
 
 class TestApplyTransitions:
     def setup_method(self):
@@ -378,7 +378,7 @@ class TestApplyTransitions:
             e.emotions["Fear"].activate(0.7)
             e.emotions["Fear"].time_active = 4
             e.emotions["Fear"].is_active = True
-            with patch("random.random", return_value=0.1):  # 0.1 < 0.75 → fires
+            with patch("random.random", return_value=0.1):  # 0.1 < 0.75 -> fires
                 self.engine.apply_transitions(e)
             if e.emotions["Distress"].is_active:
                 triggered = True
@@ -399,7 +399,7 @@ class TestApplyTransitions:
         """Shame with intensity > 0.4 should probabilistically activate Anger."""
         entity = make_entity()
         entity.emotions["Shame"].activate(0.6)  # > 0.4 threshold
-        with patch("random.random", return_value=0.1):  # 0.1 < 0.60 → fires
+        with patch("random.random", return_value=0.1):  # 0.1 < 0.60 -> fires
             self.engine.apply_transitions(entity)
         assert entity.emotions["Anger"].is_active
 
@@ -413,14 +413,14 @@ class TestApplyTransitions:
     def test_hope_high_intensity_can_transition_to_anticipation(self):
         entity = make_entity()
         entity.emotions["Hope"].activate(0.7)  # > 0.5 threshold
-        with patch("random.random", return_value=0.1):  # 0.1 < 0.70 → fires
+        with patch("random.random", return_value=0.1):  # 0.1 < 0.70 -> fires
             self.engine.apply_transitions(entity)
         assert entity.emotions["Anticipation"].is_active
 
     def test_joy_high_intensity_can_transition_to_gratitude(self):
         entity = make_entity()
         entity.emotions["Joy"].activate(0.7)  # > 0.5 threshold
-        with patch("random.random", return_value=0.1):  # 0.1 < 0.65 → fires
+        with patch("random.random", return_value=0.1):  # 0.1 < 0.65 -> fires
             self.engine.apply_transitions(entity)
         assert entity.emotions["Gratitude"].is_active
 
@@ -438,7 +438,7 @@ class TestApplyTransitions:
         """If random.random() >= prob, transition should NOT fire."""
         entity = make_entity()
         entity.emotions["Shame"].activate(0.9)  # well above threshold
-        with patch("random.random", return_value=0.99):  # 0.99 >= 0.60 → no fire
+        with patch("random.random", return_value=0.99):  # 0.99 >= 0.60 -> no fire
             self.engine.apply_transitions(entity)
         assert not entity.emotions["Anger"].is_active
 

@@ -1,4 +1,4 @@
-/* ── Emotionist.ai — Liquid chrome on void ──────────────────────────────── */
+/* -- Emotionist.ai - Liquid chrome on void -------------------------------- */
 :root {
   --void: #08080a;
   --surface: #111114;
@@ -26,7 +26,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Atmosphere layers ──────────────────────────────────────────────────── */
+/* -- Atmosphere layers ---------------------------------------------------- */
 .glow {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
@@ -45,7 +45,7 @@ html, body {
           mask-image: linear-gradient(225deg, #000 22%, transparent 80%);
 }
 
-/* ── Shell ──────────────────────────────────────────────────────────────── */
+/* -- Shell ---------------------------------------------------------------- */
 .topbar {
   position: relative; z-index: 2;
   padding: 1.8rem 2.4rem 0;
@@ -70,7 +70,7 @@ html, body {
   padding: 1.6rem 2.4rem 2.4rem;
 }
 
-/* ── Controls ───────────────────────────────────────────────────────────── */
+/* -- Controls ------------------------------------------------------------- */
 .controls {
   display: flex; align-items: flex-end; justify-content: space-between;
   gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem;
@@ -108,7 +108,7 @@ select#topic:hover { border-color: var(--violet); }
 }
 .btn-primary:hover { filter: brightness(1.12); border-color: var(--violet-bright); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-dim) 100%); }
 
-/* ── Opener ─────────────────────────────────────────────────────────────── */
+/* -- Opener --------------------------------------------------------------- */
 .opener {
   background: var(--surface); border: 1px solid var(--border);
   border-left: 2px solid var(--amber); border-radius: 10px;
@@ -116,13 +116,13 @@ select#topic:hover { border-color: var(--violet); }
 }
 .opener b { color: var(--text); font-weight: 600; }
 
-/* ── Stage grid ─────────────────────────────────────────────────────────── */
+/* -- Stage grid ----------------------------------------------------------- */
 .stage {
   display: grid; grid-template-columns: 1fr 1.7fr 1fr; gap: 1.4rem;
   align-items: start;
 }
 
-/* ── Panels (cards) ─────────────────────────────────────────────────────── */
+/* -- Panels (cards) ------------------------------------------------------- */
 .panel {
   background: linear-gradient(180deg, var(--surface) 0%, #0c0c0f 100%);
   border: 1px solid var(--border); border-radius: 18px;
@@ -157,7 +157,7 @@ select#topic:hover { border-color: var(--violet); }
   color: var(--dim); letter-spacing: 0.08em; margin-top: 1.2rem;
 }
 
-/* ── Emotion bars ───────────────────────────────────────────────────────── */
+/* -- Emotion bars --------------------------------------------------------- */
 .emo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .emo-name { font-size: 0.72rem; font-weight: 600; color: #d4d4d8; width: 94px; flex-shrink: 0; }
 .bar-track { flex: 1; height: 6px; background: rgba(255, 255, 255, 0.06); border-radius: 99px; overflow: hidden; }
@@ -165,7 +165,7 @@ select#topic:hover { border-color: var(--violet); }
 .emo-pct { font-family: "JetBrains Mono", monospace; font-size: 0.62rem; color: var(--muted); width: 32px; text-align: right; flex-shrink: 0; }
 .calm { font-family: "JetBrains Mono", monospace; font-size: 0.72rem; color: var(--dim); letter-spacing: 0.06em; }
 
-/* ── Behavioral chips ───────────────────────────────────────────────────── */
+/* -- Behavioral chips ----------------------------------------------------- */
 .params { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .chip {
   font-size: 0.68rem; padding: 6px 10px; border-radius: 8px;
@@ -180,7 +180,7 @@ select#topic:hover { border-color: var(--violet); }
 .lv-low .val       { color: #a3e635; }
 .lv-very-low .val  { color: var(--cyan); }
 
-/* ── Conversation ───────────────────────────────────────────────────────── */
+/* -- Conversation --------------------------------------------------------- */
 .conv { display: flex; flex-direction: column; min-height: 420px; }
 .conv-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem; }
 .pill {
@@ -218,7 +218,7 @@ select#topic:hover { border-color: var(--violet); }
 }
 .ev-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
-/* ── Inject ─────────────────────────────────────────────────────────────── */
+/* -- Inject --------------------------------------------------------------- */
 .inject { display: flex; gap: 10px; margin-top: 1.1rem; }
 .inject input {
   flex: 1; background: var(--surface-2); border: 1px solid var(--border);
@@ -228,14 +228,14 @@ select#topic:hover { border-color: var(--violet); }
 .inject input:focus { outline: none; border-color: var(--violet); }
 .inject input::placeholder { color: var(--dim); }
 
-/* ── Footer ─────────────────────────────────────────────────────────────── */
+/* -- Footer --------------------------------------------------------------- */
 .foot {
   margin-top: 2.6rem; text-align: center;
   font-family: "JetBrains Mono", monospace; font-size: 0.6rem;
   color: #3a3a42; letter-spacing: 0.16em; text-transform: uppercase;
 }
 
-/* ── Busy state ─────────────────────────────────────────────────────────── */
+/* -- Busy state ----------------------------------------------------------- */
 body.busy { cursor: progress; }
 .thinking { display: inline-flex; gap: 4px; padding: 4px 0; }
 .thinking span {
@@ -246,7 +246,7 @@ body.busy { cursor: progress; }
 .thinking span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
 
-/* ── Nav ────────────────────────────────────────────────────────────────── */
+/* -- Nav ------------------------------------------------------------------ */
 .topbar-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .nav { display: flex; gap: 8px; margin-top: 6px; }
 .nav-link {
@@ -257,7 +257,7 @@ body.busy { cursor: progress; }
 .nav-link:hover { color: #fff; border-color: var(--violet); }
 .nav-link.active { color: #fff; background: rgba(124, 77, 255, 0.12); border-color: rgba(124, 77, 255, 0.42); }
 
-/* ── Chat-page config ───────────────────────────────────────────────────── */
+/* -- Chat-page config ----------------------------------------------------- */
 .chat-stage { grid-template-columns: 1.05fr 1.7fr 1.05fr; }
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 0.9rem; }
 .field em { color: var(--violet-bright); font-style: normal; font-family: "JetBrains Mono", monospace; }

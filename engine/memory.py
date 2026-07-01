@@ -5,7 +5,7 @@ The decision note (#23 ADR) lives in BUILD_NOTES.md. In short:
   * Store: in-memory list, scoped to a ChatSession. This is a single-user local
     demo (like GAME/CHAT in server.py), so per-process memory already "survives
     across requests in a session" (#24) without SQLite. Swap-in point is small.
-  * Embeddings: Ollama `nomic-embed-text` over stdlib urllib — no new dependency,
+  * Embeddings: Ollama `nomic-embed-text` over stdlib urllib - no new dependency,
     no API key, runs offline (#25). Cosine similarity in pure Python.
   * Fallback: if embeddings are unavailable (model not pulled / Ollama down /
     Groq-only box), retrieval degrades to token-overlap scoring so the demo never
@@ -58,7 +58,7 @@ def _tokens(text: str) -> Counter:
 
 
 def _overlap(a: Counter, b: Counter) -> float:
-    """Cosine over token counts — the embedding-free fallback similarity."""
+    """Cosine over token counts - the embedding-free fallback similarity."""
     inter = sum((a & b).values())
     na = math.sqrt(sum(v * v for v in a.values()))
     nb = math.sqrt(sum(v * v for v in b.values()))
@@ -71,7 +71,7 @@ class SessionMemory:
     def __init__(self, budget_chars: int = 600):
         self.items: list[dict] = []          # {text, embedding|None, tokens}
         self.budget_chars = budget_chars     # token budget for injected context (#26)
-        self.backend = "none"                # "embeddings" | "keyword" — for UI/debug
+        self.backend = "none"                # "embeddings" | "keyword" - for UI/debug
 
     def add(self, text: str) -> None:
         text = text.strip()
@@ -119,7 +119,7 @@ class SessionMemory:
 
 
 if __name__ == "__main__":
-    # ponytail: self-check — fallback retrieval ranks the relevant item first.
+    # ponytail: self-check - fallback retrieval ranks the relevant item first.
     m = SessionMemory()
     for t in ["The customer's card was blocked at a shop.",
               "We discussed weekend football plans.",
@@ -130,4 +130,4 @@ if __name__ == "__main__":
     assert "card" in hits[0]["text"].lower(), f"bad top hit: {hits}"
     blk, raw = m.context_block("fraud on my account", k=2)
     assert "savings" in blk.lower(), f"context missing fraud item: {blk}"
-    print(f"OK — backend={m.backend}; top hit: {hits[0]}")
+    print(f"OK - backend={m.backend}; top hit: {hits[0]}")
